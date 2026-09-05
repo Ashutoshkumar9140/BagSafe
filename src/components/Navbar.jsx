@@ -41,14 +41,14 @@ function Navbar() {
           </Link>
 
           <a
-            href="/#about"
+            href="/BagSafe/#about"
             className="hidden text-sm font-medium text-slate-700 transition-colors hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400 sm:block"
           >
             About
           </a>
 
           <a
-            href="/#contact"
+            href="/BagSafe/#contact"
             className="hidden text-sm font-medium text-slate-700 transition-colors hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400 sm:block"
           >
             Contact
