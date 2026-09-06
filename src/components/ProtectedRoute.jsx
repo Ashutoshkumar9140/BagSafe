@@ -4,14 +4,12 @@ import { useApp } from "../context/AppContext";
 function ProtectedRoute({ children, role }) {
   const { user } = useApp();
 
-  // ........................ check if the user is logged in ........................
-
+  // ........................ block dashboard access without a login ........................
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // ........................................ check the user's role .......................
-
+  // ........................ send users to the dashboard for their own role ................
   if (role && user.role !== role) {
     if (user.role === "student") {
       return <Navigate to="/student/dashboard" replace />;

@@ -6,16 +6,13 @@ import StudentDashboard from "./pages/StudentDashboard";
 import HomeownerDashboard from "./pages/HomeownerDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// ........................ keep public and protected routes together ........................
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-
       <Route path="/login" element={<Login />} />
-
       <Route path="/signup" element={<Signup />} />
-
-      {/* ................................. protect role-based dashboards ................................. */}
 
       <Route
         path="/student/dashboard"

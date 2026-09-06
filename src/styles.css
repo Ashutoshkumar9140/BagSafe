@@ -33,45 +33,46 @@ html:not(.dark) {
   color-scheme: light;
 }
 
+/* ...................... Base form controls stay readable without forced priority ...................... */
 input:not([type="file"]),
 textarea,
 select {
-  color: #172033 !important;
-  background-color: #ffffff !important;
+  color: #172033;
+  background-color: #ffffff;
   border-color: #cbd5e1;
 }
 
 input:not([type="file"])::placeholder,
 textarea::placeholder {
-  color: #64748b !important;
+  color: #64748b;
   opacity: 1;
 }
 
 input:not([type="file"]):focus,
 textarea:focus,
 select:focus {
-  color: #172033 !important;
-  background-color: #ffffff !important;
+  color: #172033;
+  background-color: #ffffff;
 }
 
 html.dark input:not([type="file"]),
 html.dark textarea,
 html.dark select {
-  color: #e5edf8 !important;
-  background-color: #111c2e !important;
+  color: #e5edf8;
+  background-color: #111c2e;
   border-color: #475569;
 }
 
 html.dark input:not([type="file"])::placeholder,
 html.dark textarea::placeholder {
-  color: #94a3b8 !important;
+  color: #94a3b8;
 }
 
 html.dark input:not([type="file"]):focus,
 html.dark textarea:focus,
 html.dark select:focus {
-  color: #e5edf8 !important;
-  background-color: #111c2e !important;
+  color: #e5edf8;
+  background-color: #111c2e;
 }
 
 select option {
@@ -93,8 +94,7 @@ button {
   color: #ffffff;
 }
 
-/* ................................. keep scrolling without visible scrollbar ................................ */
-
+/* ................................. Keep scrolling without visible scrollbar ................................ */
 * {
   scrollbar-width: none;
 }
@@ -133,9 +133,11 @@ html.dark .bagsafe-home-button {
   0% {
     background-position: 0 0, 0% 50%;
   }
+
   50% {
     background-position: 0 0, 100% 50%;
   }
+
   100% {
     background-position: 0 0, 0% 50%;
   }
@@ -200,41 +202,6 @@ html.dark .bagsafe-rose-section {
   border-color: #9f1239;
 }
 
-.bagsafe-input-panel {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #172033;
-}
-
-html.dark .bagsafe-input-panel {
-  border-color: #475569;
-  background: #111c2e;
-  color: #e5edf8;
-}
-
-/* ................................. stronger readable form controls ................................. */
-.bagsafe-auth-input {
-  color: #172033 !important;
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-}
-
-.bagsafe-auth-input::placeholder {
-  color: #64748b !important;
-  opacity: 1;
-}
-
-html.dark .bagsafe-auth-input {
-  color: #f1f5f9 !important;
-  background: #172235 !important;
-  border-color: #475569 !important;
-}
-
-html.dark .bagsafe-auth-input::placeholder {
-  color: #a8b5c7 !important;
-}
-
-/* ................................. balanced section colors for better contrast ................................ */
 .bagsafe-section,
 .bagsafe-blue-section,
 .bagsafe-green-section,
@@ -251,4 +218,38 @@ html.dark .bagsafe-purple-section,
 html.dark .bagsafe-amber-section,
 html.dark .bagsafe-rose-section {
   color: #e5edf8;
+}
+
+.bagsafe-input-panel {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #172033;
+}
+
+html.dark .bagsafe-input-panel {
+  border-color: #475569;
+  background: #111c2e;
+  color: #e5edf8;
+}
+
+/* ...................... Auth fields use normal CSS specificity instead of forced priority ...................... */
+.bagsafe-auth-input {
+  color: #172033;
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.bagsafe-auth-input::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+html.dark .bagsafe-auth-input {
+  color: #f1f5f9;
+  background: #172235;
+  border-color: #475569;
+}
+
+html.dark .bagsafe-auth-input::placeholder {
+  color: #a8b5c7;
 }

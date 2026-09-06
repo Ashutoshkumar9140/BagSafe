@@ -75,26 +75,14 @@ function StudentDashboard() {
       }
     };
 
-    window.addEventListener(
-      "bagsafeRequestUpdated",
-      handleRequestUpdate
-    );
+    window.addEventListener("bagsafeRequestUpdated", handleRequestUpdate);
 
-    window.addEventListener(
-      "storage",
-      handleStorageUpdate
-    );
+    window.addEventListener("storage", handleStorageUpdate);
 
     return () => {
-      window.removeEventListener(
-        "bagsafeRequestUpdated",
-        handleRequestUpdate
-      );
+      window.removeEventListener("bagsafeRequestUpdated", handleRequestUpdate);
 
-      window.removeEventListener(
-        "storage",
-        handleStorageUpdate
-      );
+      window.removeEventListener("storage", handleStorageUpdate);
     };
   }, [user]);
 
@@ -107,17 +95,13 @@ function StudentDashboard() {
     const reservedStudents = savedRequests
       .filter(
         (request) =>
-          request.shelterId === shelterId &&
-          request.status !== "rejected"
+          request.shelterId === shelterId && request.status !== "rejected",
       )
       .reduce((total, request) => total + Number(request.students || 0), 0);
 
     return {
       reservedStudents,
-      remainingStudents: Math.max(
-        Number(capacity || 0) - reservedStudents,
-        0
-      ),
+      remainingStudents: Math.max(Number(capacity || 0) - reservedStudents, 0),
     };
   };
 
@@ -126,7 +110,7 @@ function StudentDashboard() {
       JSON.parse(localStorage.getItem("bagsafeRequests")) || [];
 
     const studentRequests = savedRequests.filter(
-      (request) => request.studentId === user?.id
+      (request) => request.studentId === user?.id,
     );
 
     setRequests(studentRequests);
@@ -181,9 +165,7 @@ function StudentDashboard() {
     setRequestMessage("");
 
     if (!city || !area.trim()) {
-      setMessage(
-        "Please select a city and enter your exam center or area."
-      );
+      setMessage("Please select a city and enter your exam center or area.");
       return;
     }
 
@@ -201,10 +183,7 @@ function StudentDashboard() {
     const allShelters = [...savedOwnerShelters, ...shelterData];
 
     const availableShelters = allShelters.filter((shelter) => {
-      const availability = getShelterAvailability(
-        shelter.id,
-        shelter.capacity
-      );
+      const availability = getShelterAvailability(shelter.id, shelter.capacity);
 
       const hasCapacity = availability.remainingStudents >= studentCount;
       const hasAvailability = shelter.availability !== "Unavailable";
@@ -215,26 +194,21 @@ function StudentDashboard() {
     const matchingOwnerShelters = availableShelters.filter(
       (shelter) =>
         !shelterData.some((demoShelter) => demoShelter.id === shelter.id) &&
-        shelter.city?.trim().toLowerCase() === city.trim().toLowerCase()
+        shelter.city?.trim().toLowerCase() === city.trim().toLowerCase(),
     );
 
     const demoShelters = availableShelters.filter((shelter) =>
-      shelterData.some((demoShelter) => demoShelter.id === shelter.id)
+      shelterData.some((demoShelter) => demoShelter.id === shelter.id),
     );
 
-    const combinedShelters = [
-      ...matchingOwnerShelters,
-      ...demoShelters,
-    ];
+    const combinedShelters = [...matchingOwnerShelters, ...demoShelters];
 
-    const results = combinedShelters
-      .slice(0, 5)
-      .map((shelter, index) => ({
-        ...shelter,
-        city: shelter.city || city,
-        area: shelter.area || searchArea,
-        distance: `${(0.8 + index * 0.6).toFixed(1)} km`,
-      }));
+    const results = combinedShelters.slice(0, 5).map((shelter, index) => ({
+      ...shelter,
+      city: shelter.city || city,
+      area: shelter.area || searchArea,
+      distance: `${(0.8 + index * 0.6).toFixed(1)} km`,
+    }));
 
     setShelters(results);
 
@@ -266,8 +240,7 @@ function StudentDashboard() {
       return;
     }
 
-    const totalCost =
-      selectedShelter.price * Number(students);
+    const totalCost = selectedShelter.price * Number(students);
 
     const newRequest = createRequest({
       homeownerName: selectedShelter.homeownerName,
@@ -287,9 +260,12 @@ function StudentDashboard() {
         studentNumber: document.studentNumber,
         fileName: document.fileName,
       })),
-      verificationDocument: verificationDocuments.length > 0
-        ? verificationDocuments.map((document) => document.fileName).join(", ")
-        : null,
+      verificationDocument:
+        verificationDocuments.length > 0
+          ? verificationDocuments
+              .map((document) => document.fileName)
+              .join(", ")
+          : null,
       homeownerEmail: selectedShelter.homeownerEmail,
       shelterAddress: selectedShelter.address,
       shelterPrice: selectedShelter.price,
@@ -302,32 +278,60 @@ function StudentDashboard() {
       return;
     }
 
-    const savedUsers =
-      JSON.parse(localStorage.getItem("bagsafeUsers")) || [];
+    const savedUsers = JSON.parse(localStorage.getItem("bagsafeUsers")) || [];
     const savedDemoHomeowners =
       JSON.parse(localStorage.getItem("bagsafeDemoHomeowners")) || [];
 
     const homeowner =
-      savedUsers.find(
-        (item) => item.id === selectedShelter.homeownerId
-      ) ||
+      savedUsers.find((item) => item.id === selectedShelter.homeownerId) ||
       savedDemoHomeowners.find(
-        (item) => item.id === selectedShelter.homeownerId
+        (item) => item.id === selectedShelter.homeownerId,
       );
 
     const demoHomeownerDefaults = {
-      owner1: { name: "Rajesh Sharma", email: "owner1@bagsafe.demo", password: "owner123" },
-      owner2: { name: "Priya Verma", email: "owner2@bagsafe.demo", password: "owner123" },
-      owner3: { name: "Amit Gupta", email: "owner3@bagsafe.demo", password: "owner123" },
-      owner4: { name: "Neha Singh", email: "owner4@bagsafe.demo", password: "owner123" },
-      owner5: { name: "Vikas Kumar", email: "owner5@bagsafe.demo", password: "owner123" },
-      owner6: { name: "Sunita Sharma", email: "owner6@bagsafe.demo", password: "owner123" },
-      owner7: { name: "Manoj Yadav", email: "owner7@bagsafe.demo", password: "owner123" },
-      owner8: { name: "Anjali Mehta", email: "owner8@bagsafe.demo", password: "owner123" },
+      owner1: {
+        name: "Rajesh Sharma",
+        email: "owner1@bagsafe.demo",
+        password: "owner123",
+      },
+      owner2: {
+        name: "Priya Verma",
+        email: "owner2@bagsafe.demo",
+        password: "owner123",
+      },
+      owner3: {
+        name: "Amit Gupta",
+        email: "owner3@bagsafe.demo",
+        password: "owner123",
+      },
+      owner4: {
+        name: "Neha Singh",
+        email: "owner4@bagsafe.demo",
+        password: "owner123",
+      },
+      owner5: {
+        name: "Vikas Kumar",
+        email: "owner5@bagsafe.demo",
+        password: "owner123",
+      },
+      owner6: {
+        name: "Sunita Sharma",
+        email: "owner6@bagsafe.demo",
+        password: "owner123",
+      },
+      owner7: {
+        name: "Manoj Yadav",
+        email: "owner7@bagsafe.demo",
+        password: "owner123",
+      },
+      owner8: {
+        name: "Anjali Mehta",
+        email: "owner8@bagsafe.demo",
+        password: "owner123",
+      },
     };
 
-    const defaultHomeowner =
-      demoHomeownerDefaults[selectedShelter.homeownerId];
+    const defaultHomeowner = demoHomeownerDefaults[selectedShelter.homeownerId];
 
     const homeownerEmail =
       homeowner?.email ||
@@ -354,7 +358,7 @@ function StudentDashboard() {
     setRequestSent(true);
     setShowDemoCredentials(
       homeownerEmail !== "Not available" &&
-        homeownerPassword !== "Not available"
+        homeownerPassword !== "Not available",
     );
   };
 
@@ -375,11 +379,7 @@ function StudentDashboard() {
       return;
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "application/pdf",
-    ];
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
 
     if (!allowedTypes.includes(file.type)) {
       setDocumentMessage("Please upload a JPG, PNG, or PDF file.");
@@ -401,7 +401,7 @@ function StudentDashboard() {
 
     setVerificationDocuments(savedDocuments);
     setDocumentMessage(
-      `${savedDocuments.length} document${savedDocuments.length > 1 ? "s" : ""} submitted successfully.`
+      `${savedDocuments.length} document${savedDocuments.length > 1 ? "s" : ""} submitted successfully.`,
     );
 
     e.target.value = "";
@@ -409,7 +409,7 @@ function StudentDashboard() {
 
   const handleDeleteDocument = (documentIndex) => {
     const updatedDocuments = verificationDocuments.filter(
-      (_, index) => index !== documentIndex
+      (_, index) => index !== documentIndex,
     );
 
     const savedDocuments = saveVerificationDocuments(updatedDocuments);
@@ -431,9 +431,7 @@ function StudentDashboard() {
       <header className="border-b border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
-            <h1 className="text-2xl font-bold text-blue-600">
-              BagSafe
-            </h1>
+            <h1 className="text-2xl font-bold text-blue-600">BagSafe</h1>
 
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Student Dashboard
@@ -455,9 +453,11 @@ function StudentDashboard() {
             <button
               type="button"
               onClick={() => setShowProfile(true)}
-              className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="flex items-center gap-3 rounded-xl px-2 py-2 transition
+               hover:bg-slate-100 dark:hover:bg-slate-700"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-lg dark:bg-blue-950/60">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full
+               bg-blue-100 text-lg dark:bg-blue-950/60">
                 🎓
               </div>
 
@@ -478,7 +478,9 @@ function StudentDashboard() {
                 logout();
                 navigate("/login?role=student", { replace: true });
               }}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium
+               text-slate-700 transition hover:bg-slate-100 dark:border-slate-600
+                dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Logout
             </button>
@@ -524,18 +526,22 @@ function StudentDashboard() {
             </div>
 
             {verificationDocuments.length > 0 ? (
-              <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                {verificationDocuments.length} Document{verificationDocuments.length > 1 ? "s" : ""} Submitted
+              <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
+               text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                {verificationDocuments.length} Document
+                {verificationDocuments.length > 1 ? "s" : ""} Submitted
               </span>
             ) : (
-              <span className="w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300">
+              <span className="w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold
+               text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300">
                 Not Submitted
               </span>
             )}
           </div>
 
           {documentMessage && (
-            <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+            <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm
+             text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
               {documentMessage}
             </div>
           )}
@@ -545,37 +551,75 @@ function StudentDashboard() {
               {Array.from({ length: Number(students) }, (_, studentIndex) => {
                 const studentNumber = studentIndex + 1;
                 const studentDocuments = verificationDocuments.filter(
-                  (document) => document.studentNumber === studentNumber || (!document.studentNumber && studentNumber === 1)
+                  (document) =>
+                    document.studentNumber === studentNumber ||
+                    (!document.studentNumber && studentNumber === 1),
                 );
 
                 return (
                   <div
                     key={studentNumber}
-                    className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900 dark:bg-emerald-950/20"
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4
+                     dark:border-emerald-900 dark:bg-emerald-950/20"
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-bold text-slate-900 dark:text-slate-100">Student {studentNumber}</p>
-                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Select admit card and identity documents for this student.</p>
+                        <p className="font-bold text-slate-900 dark:text-slate-100">
+                          Student {studentNumber}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                          Select admit card and identity documents for this
+                          student.
+                        </p>
                       </div>
-                      <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{studentDocuments.length} selected</span>
+                      <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                        {studentDocuments.length} selected
+                      </span>
                     </div>
 
                     <div className="mt-4 space-y-2">
                       {studentDocuments.map((document) => {
-                        const documentIndex = verificationDocuments.indexOf(document);
+                        const documentIndex =
+                          verificationDocuments.indexOf(document);
 
                         return (
-                          <div key={document.id || `${document.fileName}-${documentIndex}`} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-white px-3 py-3 dark:border-emerald-900 dark:bg-slate-900">
-                            <p className="min-w-0 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">✓ {document.fileName}</p>
-                            <button type="button" onClick={() => handleDeleteDocument(documentIndex)} className="shrink-0 text-sm font-bold text-red-600 hover:text-red-700 dark:text-red-400">Remove</button>
+                          <div
+                            key={
+                              document.id ||
+                              `${document.fileName}-${documentIndex}`
+                            }
+                            className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100
+                             bg-white px-3 py-3 dark:border-emerald-900 dark:bg-slate-900"
+                          >
+                            <p className="min-w-0 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                              ✓ {document.fileName}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteDocument(documentIndex)
+                              }
+                              className="shrink-0 text-sm font-bold text-red-600 hover:text-red-700 dark:text-red-400"
+                            >
+                              Remove
+                            </button>
                           </div>
                         );
                       })}
 
-                      <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-white px-4 py-3 text-center text-sm font-bold text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 
+                      border-dashed border-emerald-300 bg-white px-4 py-3 text-center text-sm font-bold
+                       text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-50
+                        dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
                         + Select another admit card / identity document
-                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleDocumentUpload(e, studentNumber)} className="hidden" />
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) =>
+                            handleDocumentUpload(e, studentNumber)
+                          }
+                          className="hidden"
+                        />
                       </label>
                     </div>
                   </div>
@@ -615,7 +659,9 @@ function StudentDashboard() {
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
+                 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
+                  dark:border-slate-600 dark:focus:ring-blue-900/50"
               >
                 <option value="">Select city</option>
 
@@ -637,7 +683,8 @@ function StudentDashboard() {
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Noida Sector 62"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
+                 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
               />
             </div>
 
@@ -649,7 +696,9 @@ function StudentDashboard() {
               <select
                 value={students}
                 onChange={(e) => setStudents(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
+                 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
+                  dark:border-slate-600 dark:focus:ring-blue-900/50"
               >
                 <option value="1">1 Student</option>
                 <option value="2">2 Students</option>
@@ -670,7 +719,8 @@ function StudentDashboard() {
           </form>
 
           {message && (
-            <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+            <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm
+             text-red-700 dark:bg-red-950/40 dark:text-red-300">
               {message}
             </div>
           )}
@@ -707,17 +757,23 @@ function StudentDashboard() {
                     )}
                   </div>
 
-                  <span className="h-fit rounded-full bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                    {getShelterAvailability(
-                      selectedShelter.id,
-                      selectedShelter.capacity
-                    ).remainingStudents} spots left
+                  <span className="h-fit rounded-full bg-green-50 px-4 py-2 text-sm font-semibold
+                   text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                    {
+                      getShelterAvailability(
+                        selectedShelter.id,
+                        selectedShelter.capacity,
+                      ).remainingStudents
+                    }{" "}
+                    spots left
                   </span>
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Distance</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Distance
+                    </p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       {selectedShelter.distance}
@@ -725,21 +781,28 @@ function StudentDashboard() {
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Capacity</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Capacity
+                    </p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       {selectedShelter.capacity} students
                     </p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {getShelterAvailability(
-                        selectedShelter.id,
-                        selectedShelter.capacity
-                      ).remainingStudents} spots remaining
+                      {
+                        getShelterAvailability(
+                          selectedShelter.id,
+                          selectedShelter.capacity,
+                        ).remainingStudents
+                      }{" "}
+                      spots remaining
                     </p>
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Price</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Price
+                    </p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       ₹{selectedShelter.price} / student
@@ -756,7 +819,8 @@ function StudentDashboard() {
                     {selectedShelter.amenities.map((amenity) => (
                       <span
                         key={amenity}
-                        className="rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                        className="rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700
+                         dark:bg-blue-950/40 dark:text-blue-300"
                       >
                         {amenity}
                       </span>
@@ -777,7 +841,8 @@ function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:bg-slate-950 dark:border-slate-700 sm:p-6">
+              <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4
+               dark:bg-slate-950 dark:border-slate-700 sm:p-6">
                 {!requestSent ? (
                   <>
                     <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -817,12 +882,12 @@ function StudentDashboard() {
 
                       <textarea
                         value={requestMessage}
-                        onChange={(e) =>
-                          setRequestMessage(e.target.value)
-                        }
+                        onChange={(e) => setRequestMessage(e.target.value)}
                         placeholder="Tell the homeowner about your stay..."
                         rows="4"
-                        className="w-full resize-none rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                        className="w-full resize-none rounded-lg border border-slate-300 bg-white px-4 
+                        py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2
+                         focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
                       />
                     </div>
 
@@ -833,7 +898,9 @@ function StudentDashboard() {
                         </p>
 
                         <p className="mt-1 truncate text-xs text-green-600">
-                          {verificationDocuments.map((document) => document.fileName).join(", ")}
+                          {verificationDocuments
+                            .map((document) => document.fileName)
+                            .join(", ")}
                         </p>
                       </div>
                     )}
@@ -850,14 +917,16 @@ function StudentDashboard() {
                     <button
                       type="button"
                       onClick={handleSendRequest}
-                      className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+                      className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold
+                       text-white transition hover:bg-blue-700"
                     >
                       Send Request
                     </button>
                   </>
                 ) : (
                   <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-xl text-green-700 dark:bg-green-950/60 dark:text-green-300">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full
+                     bg-green-100 text-xl text-green-700 dark:bg-green-950/60 dark:text-green-300">
                       ✓
                     </div>
 
@@ -866,8 +935,7 @@ function StudentDashboard() {
                     </h4>
 
                     <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                      Your request has been successfully sent to the
-                      homeowner.
+                      Your request has been successfully sent to the homeowner.
                     </p>
 
                     <div className="mt-5 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40">
@@ -894,7 +962,8 @@ function StudentDashboard() {
                       </p>
 
                       <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
-                        {requestHomeowner?.name || requestDetails?.homeownerName}
+                        {requestHomeowner?.name ||
+                          requestDetails?.homeownerName}
                       </p>
 
                       <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
@@ -905,7 +974,6 @@ function StudentDashboard() {
                         {requestDetails?.status}
                       </p>
                     </div>
-
                   </div>
                 )}
               </div>
@@ -931,7 +999,8 @@ function StudentDashboard() {
               {shelters.map((shelter) => (
                 <div
                   key={shelter.id}
-                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 sm:p-6"
+                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200
+                   dark:bg-slate-900 dark:ring-slate-700 sm:p-6"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -950,24 +1019,22 @@ function StudentDashboard() {
                       )}
                     </div>
 
-                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                      {getShelterAvailability(
-                        shelter.id,
-                        shelter.capacity
-                      ).remainingStudents} spots left
+                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
+                     text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                      {
+                        getShelterAvailability(shelter.id, shelter.capacity)
+                          .remainingStudents
+                      }{" "}
+                      spots left
                     </span>
                   </div>
 
                   <div className="mt-5 space-y-3 text-sm text-slate-600 dark:text-slate-300">
                     <p>📍 {shelter.distance} away</p>
 
-                    <p>
-                      👥 Capacity: {shelter.capacity} students
-                    </p>
+                    <p>👥 Capacity: {shelter.capacity} students</p>
 
-                    <p>
-                      💰 ₹{shelter.price} per student
-                    </p>
+                    <p>💰 ₹{shelter.price} per student</p>
                   </div>
 
                   <div className="mt-5">
@@ -979,7 +1046,8 @@ function StudentDashboard() {
                       {shelter.amenities.map((amenity) => (
                         <span
                           key={amenity}
-                          className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                          className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600
+                           dark:bg-slate-800 dark:text-slate-300"
                         >
                           {amenity}
                         </span>
@@ -1014,7 +1082,8 @@ function StudentDashboard() {
           </div>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center sm:p-10 dark:bg-slate-900 dark:border-slate-600">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 
+            text-center sm:p-10 dark:bg-slate-900 dark:border-slate-600">
               <div className="text-4xl">📋</div>
 
               <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -1044,8 +1113,8 @@ function StudentDashboard() {
                             request.status === "accepted"
                               ? "bg-green-50 text-green-700"
                               : request.status === "rejected"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-yellow-50 text-yellow-700"
+                                ? "bg-red-50 text-red-700"
+                                : "bg-yellow-50 text-yellow-700"
                           }`}
                         >
                           {request.status}
@@ -1095,9 +1164,7 @@ function StudentDashboard() {
                       </p>
 
                       <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
-                        {new Date(
-                          request.createdAt
-                        ).toLocaleDateString()}
+                        {new Date(request.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -1107,7 +1174,8 @@ function StudentDashboard() {
                       Your Message
                     </p>
 
-                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600
+                     dark:bg-slate-950 dark:text-slate-300">
                       {request.message || "No message provided."}
                     </div>
                   </div>
@@ -1126,17 +1194,20 @@ function StudentDashboard() {
 
                   <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <button
-                        type="button"
-                        onClick={() => handleDeleteRequest(request)}
-                        className="rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
-                      >
-                        Delete Request
-                      </button>
+                      type="button"
+                      onClick={() => handleDeleteRequest(request)}
+                      className="rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold
+                       text-red-700 transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40
+                        dark:text-red-300 dark:hover:bg-red-950/70"
+                    >
+                      Delete Request
+                    </button>
 
                     <button
                       type="button"
                       onClick={() => setChatRequest(request)}
-                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300"
+                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm 
+                      font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300"
                     >
                       💬 Chat with Homeowner
                     </button>
@@ -1150,17 +1221,10 @@ function StudentDashboard() {
 
       {/* ................................ profile and chat overlays ................................ */}
 
-      {showProfile && (
-        <StudentProfile
-          onClose={() => setShowProfile(false)}
-        />
-      )}
+      {showProfile && <StudentProfile onClose={() => setShowProfile(false)} />}
 
       {chatRequest && (
-        <Chat
-          request={chatRequest}
-          onClose={() => setChatRequest(null)}
-        />
+        <Chat request={chatRequest} onClose={() => setChatRequest(null)} />
       )}
 
       {showDeleteConfirm && deleteTargetRequest && (
@@ -1170,16 +1234,25 @@ function StudentDashboard() {
           aria-modal="true"
           aria-labelledby="delete-request-title"
         >
-          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl dark:border-red-900 dark:bg-slate-900 sm:p-7">
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl
+           dark:border-red-900 dark:bg-slate-900 sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-xl dark:bg-red-950/60">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+                 bg-red-100 text-xl dark:bg-red-950/60">
                   🗑️
                 </div>
 
                 <div>
-                  <h2 id="delete-request-title" className="text-xl font-bold text-slate-900 dark:text-slate-100">Delete Request?</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">This action cannot be undone.</p>
+                  <h2
+                    id="delete-request-title"
+                    className="text-xl font-bold text-slate-900 dark:text-slate-100"
+                  >
+                    Delete Request?
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    This action cannot be undone.
+                  </p>
                 </div>
               </div>
 
@@ -1190,14 +1263,18 @@ function StudentDashboard() {
                   setDeleteTargetRequest(null);
                 }}
                 aria-label="Close delete confirmation"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xl font-bold leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 
+                text-2xl font-bold leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-800
+                 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
               >
                 ×
               </button>
             </div>
 
             <p className="mt-5 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Are you sure you want to delete this {deleteTargetRequest.status} request? Pending booking amounts will be refunded to your wallet. Accepted and rejected requests will simply be removed.
+              Are you sure you want to delete this {deleteTargetRequest.status}{" "}
+              request? Pending booking amounts will be refunded to your wallet.
+              Accepted and rejected requests will simply be removed.
             </p>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -1207,7 +1284,8 @@ function StudentDashboard() {
                   setShowDeleteConfirm(false);
                   setDeleteTargetRequest(null);
                 }}
-                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold
+                 text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
@@ -1215,7 +1293,8 @@ function StudentDashboard() {
               <button
                 type="button"
                 onClick={confirmDeleteRequest}
-                className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold
+                 text-white transition hover:bg-red-700"
               >
                 Delete Request
               </button>
@@ -1224,35 +1303,75 @@ function StudentDashboard() {
         </div>
       )}
 
-      {showDemoCredentials && requestHomeowner?.email && requestHomeowner?.password && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-homeowner-title">
-          <div className="w-full max-w-lg rounded-3xl border border-blue-200 bg-white p-6 shadow-2xl dark:border-blue-800 dark:bg-slate-900 sm:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-600">Request submitted</p>
-                <h2 id="demo-homeowner-title" className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Demo Homeowner Credentials</h2>
+      {showDemoCredentials &&
+        requestHomeowner?.email &&
+        requestHomeowner?.password && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="demo-homeowner-title"
+          >
+            <div className="w-full max-w-lg rounded-3xl border border-blue-200
+             bg-white p-6 shadow-2xl dark:border-blue-800 dark:bg-slate-900 sm:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-600">
+                    Request submitted
+                  </p>
+                  <h2
+                    id="demo-homeowner-title"
+                    className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100"
+                  >
+                    Demo Homeowner Credentials
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDemoCredentials(false)}
+                  aria-label="Close demo credentials"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+                   bg-red-50 text-3xl font-bold leading-none text-red-600 transition
+                    hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400"
+                >
+                  ×
+                </button>
               </div>
-              <button type="button" onClick={() => setShowDemoCredentials(false)} aria-label="Close demo credentials" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-3xl font-bold leading-none text-red-600 transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400">×</button>
-            </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">Your request has been sent. Keep these demo homeowner credentials to open the homeowner dashboard and review the request.</p>
+              <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Your request has been sent. Keep these demo homeowner
+                credentials to open the homeowner dashboard and review the
+                request.
+              </p>
 
-            <div className="mt-6 space-y-3 rounded-2xl bg-blue-50 p-5 dark:bg-blue-950/30">
-              <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email</p>
-                <p className="mt-1 break-all text-lg font-black text-slate-900 dark:text-slate-100">{requestHomeowner.email}</p>
+              <div className="mt-6 space-y-3 rounded-2xl bg-blue-50 p-5 dark:bg-blue-950/30">
+                <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Email
+                  </p>
+                  <p className="mt-1 break-all text-lg font-black text-slate-900 dark:text-slate-100">
+                    {requestHomeowner.email}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Password
+                  </p>
+                  <p className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">
+                    {requestHomeowner.password}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Password</p>
-                <p className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">{requestHomeowner.password}</p>
-              </div>
-            </div>
 
-            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">Close this box with the red × button when you have finished reading the credentials. The page remains blocked until you close it.
+              <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 
+              text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                Close this box with the red × button when you have finished
+                reading the credentials. The page remains blocked until you
+                close it.
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

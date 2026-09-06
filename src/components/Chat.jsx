@@ -9,6 +9,9 @@ function Chat({ request, onClose }) {
 
   const chatKey = `bagsafeChat_${request.requestId}`;
 
+
+// ......................................... load the saved conversation for this request ................................
+
   const loadMessages = () => {
     try {
       const savedMessages = JSON.parse(localStorage.getItem(chatKey)) || [];
@@ -17,6 +20,8 @@ function Chat({ request, onClose }) {
       setMessages([]);
     }
   };
+
+// ......................................... refresh chat when another user updates the conversation ................................
 
   useEffect(() => {
     loadMessages();
@@ -29,11 +34,18 @@ function Chat({ request, onClose }) {
     window.addEventListener("bagsafeChatUpdated", handleChatUpdate);
     window.addEventListener("storage", handleStorageUpdate);
 
+  // ......................................... render the conversation and message composer ................................
+
     return () => {
       window.removeEventListener("bagsafeChatUpdated", handleChatUpdate);
       window.removeEventListener("storage", handleStorageUpdate);
     };
   }, [chatKey]);
+
+  // ........................ validate and save a new chat message ........................
+
+
+// ............ validate and save a new message before refreshing the chat .........................
 
   const sendMessage = (e) => {
     e.preventDefault();

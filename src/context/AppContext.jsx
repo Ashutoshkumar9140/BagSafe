@@ -3,14 +3,94 @@ import { createContext, useContext, useState } from "react";
 const AppContext = createContext();
 
 const demoHomeowners = [
-  { id: "owner1", name: "Rajesh Sharma", age: "42", sex: "Male", nationality: "Indian", mobile: "9000000001", email: "owner1@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner2", name: "Priya Verma", age: "38", sex: "Female", nationality: "Indian", mobile: "9000000002", email: "owner2@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner3", name: "Amit Gupta", age: "45", sex: "Male", nationality: "Indian", mobile: "9000000003", email: "owner3@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner4", name: "Neha Singh", age: "36", sex: "Female", nationality: "Indian", mobile: "9000000004", email: "owner4@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner5", name: "Vikas Kumar", age: "40", sex: "Male", nationality: "Indian", mobile: "9000000005", email: "owner5@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner6", name: "Sunita Sharma", age: "43", sex: "Female", nationality: "Indian", mobile: "9000000006", email: "owner6@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner7", name: "Manoj Yadav", age: "41", sex: "Male", nationality: "Indian", mobile: "9000000007", email: "owner7@bagsafe.demo", password: "owner123", role: "homeowner" },
-  { id: "owner8", name: "Anjali Mehta", age: "37", sex: "Female", nationality: "Indian", mobile: "9000000008", email: "owner8@bagsafe.demo", password: "owner123", role: "homeowner" },
+  {
+    id: "owner1",
+    name: "Rajesh Sharma",
+    age: "42",
+    sex: "Male",
+    nationality: "Indian",
+    mobile: "9000000001",
+    email: "owner1@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner2",
+    name: "Priya Verma",
+    age: "38",
+    sex: "Female",
+    nationality: "Indian",
+    mobile: "9000000002",
+    email: "owner2@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner3",
+    name: "Amit Gupta",
+    age: "45",
+    sex: "Male",
+    nationality: "Indian",
+    mobile: "9000000003",
+    email: "owner3@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner4",
+    name: "Neha Singh",
+    age: "36",
+    sex: "Female",
+    nationality: "Indian",
+    mobile: "9000000004",
+    email: "owner4@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner5",
+    name: "Vikas Kumar",
+    age: "40",
+    sex: "Male",
+    nationality: "Indian",
+    mobile: "9000000005",
+    email: "owner5@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner6",
+    name: "Sunita Sharma",
+    age: "43",
+    sex: "Female",
+    nationality: "Indian",
+    mobile: "9000000006",
+    email: "owner6@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner7",
+    name: "Manoj Yadav",
+    age: "41",
+    sex: "Male",
+    nationality: "Indian",
+    mobile: "9000000007",
+    email: "owner7@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
+  {
+    id: "owner8",
+    name: "Anjali Mehta",
+    age: "37",
+    sex: "Female",
+    nationality: "Indian",
+    mobile: "9000000008",
+    email: "owner8@bagsafe.demo",
+    password: "owner123",
+    role: "homeowner",
+  },
 ];
 
 const readStorage = (key, fallback = []) => {
@@ -36,10 +116,14 @@ function AppProvider({ children }) {
     }
   });
 
+  // ........................ load demo homeowners and saved owner changes ........................
+
   const getDemoHomeowners = () => {
     const deletedIds = readStorage("bagsafeDeletedDemoHomeowners", []);
     return demoHomeowners.filter((item) => !deletedIds.includes(item.id));
   };
+
+  // ........................ create a new student or homeowner account ........................
 
   const signup = (userData) => {
     const users = readStorage("bagsafeUsers", []);
@@ -75,6 +159,8 @@ function AppProvider({ children }) {
     return "success";
   };
 
+  // ........................ authenticate users from local storage ........................
+
   const login = (loginValue, password) => {
     const value = loginValue.trim().toLowerCase();
     const users = readStorage("bagsafeUsers", []);
@@ -82,8 +168,9 @@ function AppProvider({ children }) {
 
     const foundUser = allUsers.find(
       (item) =>
-        (item.email.toLowerCase() === value || item.mobile === loginValue.trim()) &&
-        item.password === password
+        (item.email.toLowerCase() === value ||
+          item.mobile === loginValue.trim()) &&
+        item.password === password,
     );
 
     if (!foundUser) {
@@ -100,6 +187,8 @@ function AppProvider({ children }) {
     localStorage.removeItem("bagsafeUser");
     setUser(null);
   };
+
+  // ........................ keep profile edits in sync with saved users ........................
 
   const updateProfile = (updatedData) => {
     if (!user) return "User not found.";
@@ -118,10 +207,10 @@ function AppProvider({ children }) {
 
     const emailExists =
       otherUsers.some(
-        (item) => item.email.toLowerCase() === updatedUser.email.toLowerCase()
+        (item) => item.email.toLowerCase() === updatedUser.email.toLowerCase(),
       ) ||
       demoUsers.some(
-        (item) => item.email.toLowerCase() === updatedUser.email.toLowerCase()
+        (item) => item.email.toLowerCase() === updatedUser.email.toLowerCase(),
       );
 
     const mobileExists =
@@ -132,15 +221,18 @@ function AppProvider({ children }) {
     if (mobileExists) return "This mobile number is already registered.";
 
     if (String(user.id).startsWith("owner")) {
-      const savedDemoUsers = readStorage("bagsafeDemoHomeowners", demoHomeowners);
+      const savedDemoUsers = readStorage(
+        "bagsafeDemoHomeowners",
+        demoHomeowners,
+      );
       const updatedDemoUsers = savedDemoUsers.map((item) =>
-        item.id === user.id ? updatedUser : item
+        item.id === user.id ? updatedUser : item,
       );
       writeStorage("bagsafeDemoHomeowners", updatedDemoUsers);
     } else {
       writeStorage(
         "bagsafeUsers",
-        users.map((item) => (item.id === user.id ? updatedUser : item))
+        users.map((item) => (item.id === user.id ? updatedUser : item)),
       );
     }
 
@@ -164,16 +256,19 @@ function AppProvider({ children }) {
       }
       writeStorage("bagsafeDeletedDemoHomeowners", deletedDemoIds);
 
-      const savedDemoUsers = readStorage("bagsafeDemoHomeowners", demoHomeowners);
+      const savedDemoUsers = readStorage(
+        "bagsafeDemoHomeowners",
+        demoHomeowners,
+      );
       writeStorage(
         "bagsafeDemoHomeowners",
-        savedDemoUsers.filter((item) => item.id !== user.id)
+        savedDemoUsers.filter((item) => item.id !== user.id),
       );
     } else {
       const users = readStorage("bagsafeUsers", []);
       writeStorage(
         "bagsafeUsers",
-        users.filter((item) => item.id !== user.id)
+        users.filter((item) => item.id !== user.id),
       );
     }
 
@@ -182,20 +277,20 @@ function AppProvider({ children }) {
       "bagsafeRequests",
       requests.filter(
         (request) =>
-          request.studentId !== user.id && request.homeownerId !== user.id
-      )
+          request.studentId !== user.id && request.homeownerId !== user.id,
+      ),
     );
 
     const shelters = readStorage("bagsafeOwnerShelters", []);
     writeStorage(
       "bagsafeOwnerShelters",
-      shelters.filter((shelter) => shelter.homeownerId !== user.id)
+      shelters.filter((shelter) => shelter.homeownerId !== user.id),
     );
 
     const documents = readStorage("bagsafeVerificationDocuments", []);
     writeStorage(
       "bagsafeVerificationDocuments",
-      documents.filter((document) => document.studentId !== user.id)
+      documents.filter((document) => document.studentId !== user.id),
     );
 
     localStorage.removeItem(`bagsafeWallet_${user.id}`);
@@ -207,6 +302,8 @@ function AppProvider({ children }) {
 
     return "success";
   };
+
+  // ........................ return the wallet used by the current role ........................
 
   const getWallet = (userId, role) => {
     const walletKey = `bagsafeWallet_${userId}`;
@@ -246,6 +343,8 @@ function AppProvider({ children }) {
     window.dispatchEvent(new Event("bagsafeWalletUpdated"));
   };
 
+  // ........................ create a booking and reserve its payment ........................
+
   const createRequest = (requestData) => {
     const requests = readStorage("bagsafeRequests", []);
     const totalCost = Number(requestData.totalCost);
@@ -267,12 +366,12 @@ function AppProvider({ children }) {
       const activeRequests = requests.filter(
         (request) =>
           request.shelterId === requestData.shelterId &&
-          ["pending", "accepted"].includes(request.status)
+          ["pending", "accepted"].includes(request.status),
       );
 
       const reservedStudents = activeRequests.reduce(
         (total, request) => total + Number(request.students || 0),
-        0
+        0,
       );
 
       if (reservedStudents + requestedStudents > shelterCapacity) {
@@ -280,7 +379,7 @@ function AppProvider({ children }) {
           success: false,
           message: `Only ${Math.max(
             0,
-            shelterCapacity - reservedStudents
+            shelterCapacity - reservedStudents,
           )} student spot(s) are currently available.`,
         };
       }
@@ -290,7 +389,7 @@ function AppProvider({ children }) {
       (request) =>
         request.studentId === requestData.studentId &&
         request.shelterId === requestData.shelterId &&
-        ["pending", "accepted"].includes(request.status)
+        ["pending", "accepted"].includes(request.status),
     );
 
     if (duplicateRequest) {
@@ -359,10 +458,12 @@ function AppProvider({ children }) {
     return newRequest;
   };
 
+  // ........................ remove a request and refund pending payments ........................
+
   const deleteRequest = (requestId) => {
     const requests = readStorage("bagsafeRequests", []);
     const currentRequest = requests.find(
-      (request) => request.requestId === requestId
+      (request) => request.requestId === requestId,
     );
 
     if (!currentRequest) {
@@ -371,12 +472,12 @@ function AppProvider({ children }) {
 
     if (currentRequest.status === "pending") {
       const totalCost = Number(
-        currentRequest.paymentAmount ?? currentRequest.totalCost ?? 0
+        currentRequest.paymentAmount ?? currentRequest.totalCost ?? 0,
       );
       const studentWallet = getWallet(currentRequest.studentId, "student");
       const homeownerWallet = getWallet(
         currentRequest.homeownerId,
-        "homeowner"
+        "homeowner",
       );
       const now = Date.now();
 
@@ -386,7 +487,7 @@ function AppProvider({ children }) {
           balance: studentWallet.balance + totalCost,
           reservedBalance: Math.max(
             0,
-            studentWallet.reservedBalance - totalCost
+            studentWallet.reservedBalance - totalCost,
           ),
           transactions: [
             {
@@ -405,7 +506,7 @@ function AppProvider({ children }) {
           ...homeownerWallet,
           pendingEarnings: Math.max(
             0,
-            homeownerWallet.pendingEarnings - totalCost
+            homeownerWallet.pendingEarnings - totalCost,
           ),
           transactions: [
             {
@@ -423,7 +524,7 @@ function AppProvider({ children }) {
     }
 
     const updatedRequests = requests.filter(
-      (request) => request.requestId !== requestId
+      (request) => request.requestId !== requestId,
     );
 
     writeStorage("bagsafeRequests", updatedRequests);
@@ -432,10 +533,12 @@ function AppProvider({ children }) {
     return { success: true, requests: updatedRequests };
   };
 
+  // ........................ update booking status and related wallet values ........................
+
   const updateRequestStatus = (requestId, status) => {
     const requests = readStorage("bagsafeRequests", []);
     const currentRequest = requests.find(
-      (request) => request.requestId === requestId
+      (request) => request.requestId === requestId,
     );
 
     if (!currentRequest || currentRequest.status !== "pending") {
@@ -447,13 +550,10 @@ function AppProvider({ children }) {
     }
 
     const studentWallet = getWallet(currentRequest.studentId, "student");
-    const homeownerWallet = getWallet(
-      currentRequest.homeownerId,
-      "homeowner"
-    );
+    const homeownerWallet = getWallet(currentRequest.homeownerId, "homeowner");
 
     const totalCost = Number(
-      currentRequest.paymentAmount ?? currentRequest.totalCost
+      currentRequest.paymentAmount ?? currentRequest.totalCost,
     );
 
     if (!Number.isFinite(totalCost) || totalCost <= 0) {
@@ -468,10 +568,7 @@ function AppProvider({ children }) {
     if (status === "accepted") {
       updatedStudentWallet = {
         ...studentWallet,
-        reservedBalance: Math.max(
-          0,
-          studentWallet.reservedBalance - totalCost
-        ),
+        reservedBalance: Math.max(0, studentWallet.reservedBalance - totalCost),
         transactions: [
           {
             id: now + 1,
@@ -491,7 +588,7 @@ function AppProvider({ children }) {
         totalEarnings: homeownerWallet.totalEarnings + totalCost,
         pendingEarnings: Math.max(
           0,
-          homeownerWallet.pendingEarnings - totalCost
+          homeownerWallet.pendingEarnings - totalCost,
         ),
         transactions: [
           {
@@ -513,10 +610,7 @@ function AppProvider({ children }) {
       updatedStudentWallet = {
         ...studentWallet,
         balance: studentWallet.balance + totalCost,
-        reservedBalance: Math.max(
-          0,
-          studentWallet.reservedBalance - totalCost
-        ),
+        reservedBalance: Math.max(0, studentWallet.reservedBalance - totalCost),
         transactions: [
           {
             id: now + 3,
@@ -534,7 +628,7 @@ function AppProvider({ children }) {
         ...homeownerWallet,
         pendingEarnings: Math.max(
           0,
-          homeownerWallet.pendingEarnings - totalCost
+          homeownerWallet.pendingEarnings - totalCost,
         ),
         transactions: [
           {
@@ -558,7 +652,7 @@ function AppProvider({ children }) {
     const updatedRequests = requests.map((request) =>
       request.requestId === requestId
         ? { ...request, status, paymentStatus }
-        : request
+        : request,
     );
 
     writeStorage("bagsafeRequests", updatedRequests);
@@ -566,6 +660,8 @@ function AppProvider({ children }) {
 
     return updatedRequests;
   };
+
+  // ........................ save a homeowner shelter for future searches ........................
 
   const addShelter = (shelterData) => {
     const shelters = readStorage("bagsafeOwnerShelters", []);
@@ -592,7 +688,7 @@ function AppProvider({ children }) {
   const deleteShelter = (shelterId) => {
     const shelters = readStorage("bagsafeOwnerShelters", []);
     const updatedShelters = shelters.filter(
-      (shelter) => shelter.id !== shelterId
+      (shelter) => shelter.id !== shelterId,
     );
 
     writeStorage("bagsafeOwnerShelters", updatedShelters);
@@ -604,20 +700,20 @@ function AppProvider({ children }) {
   const saveVerificationDocument = (documentData) => {
     const documents = readStorage("bagsafeVerificationDocuments", []);
     const existingDocument = documents.find(
-      (document) => document.studentId === user?.id
+      (document) => document.studentId === user?.id,
     );
 
     if (existingDocument) {
       const updatedDocuments = documents.map((document) =>
         document.studentId === user.id
           ? { ...document, ...documentData, status: "submitted" }
-          : document
+          : document,
       );
 
       writeStorage("bagsafeVerificationDocuments", updatedDocuments);
 
       return updatedDocuments.find(
-        (document) => document.studentId === user.id
+        (document) => document.studentId === user.id,
       );
     }
 
@@ -634,10 +730,12 @@ function AppProvider({ children }) {
     return newDocument;
   };
 
+  // ........................ store all verification documents together ........................
+
   const saveVerificationDocuments = (documentList) => {
     const documents = readStorage("bagsafeVerificationDocuments", []);
     const otherDocuments = documents.filter(
-      (document) => document.studentId !== user?.id
+      (document) => document.studentId !== user?.id,
     );
 
     const studentDocuments = Array.isArray(documentList)
@@ -664,7 +762,7 @@ function AppProvider({ children }) {
 
     writeStorage(
       "bagsafeVerificationDocuments",
-      documents.filter((document) => document.studentId !== user?.id)
+      documents.filter((document) => document.studentId !== user?.id),
     );
   };
 
@@ -681,7 +779,7 @@ function AppProvider({ children }) {
 
     writeStorage(
       "bagsafeVerificationDocuments",
-      documents.filter((document) => document.studentId !== user?.id)
+      documents.filter((document) => document.studentId !== user?.id),
     );
   };
 

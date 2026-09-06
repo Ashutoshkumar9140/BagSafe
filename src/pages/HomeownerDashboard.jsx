@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import HomeownerProfile from "../components/HomeownerProfile";
 import Wallet from "../components/Wallet";
 import Chat from "../components/Chat";
 
 function HomeownerDashboard() {
-  const navigate = useNavigate();
-  const {
-    user,
-    logout,
-    updateRequestStatus,
-    addShelter,
-    updateShelter,
-    deleteShelter,
-  } = useApp();
+  const { user, logout, updateRequestStatus, addShelter, deleteShelter } =
+    useApp();
 
   const [requests, setRequests] = useState([]);
   const [shelters, setShelters] = useState([]);
   const [showShelterForm, setShowShelterForm] = useState(false);
-  const [editingShelterId, setEditingShelterId] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [chatRequest, setChatRequest] = useState(null);
 
@@ -33,7 +24,6 @@ function HomeownerDashboard() {
   const [amenities, setAmenities] = useState([]);
 
   const [shelterMessage, setShelterMessage] = useState("");
-  const [deleteShelterId, setDeleteShelterId] = useState(null);
 
   const availableAmenities = [
     "Food",
@@ -58,106 +48,68 @@ function HomeownerDashboard() {
       if (event.key === "bagsafeRequests") {
         loadRequests();
       }
-
-      if (event.key === "bagsafeOwnerShelters") {
-        loadShelters();
-      }
     };
 
-    const handleShelterUpdate = () => {
-      loadShelters();
-    };
+    window.addEventListener("bagsafeRequestUpdated", handleRequestUpdate);
 
-    window.addEventListener(
-      "bagsafeRequestUpdated",
-      handleRequestUpdate
-    );
-
-    window.addEventListener(
-      "storage",
-      handleStorageUpdate
-    );
-
-    window.addEventListener(
-      "bagsafeShelterUpdated",
-      handleShelterUpdate
-    );
+    window.addEventListener("storage", handleStorageUpdate);
 
     return () => {
-      window.removeEventListener(
-        "bagsafeRequestUpdated",
-        handleRequestUpdate
-      );
+      window.removeEventListener("bagsafeRequestUpdated", handleRequestUpdate);
 
-      window.removeEventListener(
-        "storage",
-        handleStorageUpdate
-      );
-
-      window.removeEventListener(
-        "bagsafeShelterUpdated",
-        handleShelterUpdate
-      );
+      window.removeEventListener("storage", handleStorageUpdate);
     };
   }, [user]);
+
+  // ........................ refresh booking requests from local storage ........................
 
   const loadRequests = () => {
     const savedRequests =
       JSON.parse(localStorage.getItem("bagsafeRequests")) || [];
 
     const homeownerRequests = savedRequests.filter(
-      (request) => request.homeownerId === user?.id
+      (request) => request.homeownerId === user?.id,
     );
 
     setRequests(homeownerRequests);
   };
+
+  // ........................ refresh shelters after any shelter change ........................
 
   const loadShelters = () => {
     const savedShelters =
       JSON.parse(localStorage.getItem("bagsafeOwnerShelters")) || [];
 
     const homeownerShelters = savedShelters.filter(
-      (shelter) => shelter.homeownerId === user?.id
+      (shelter) => shelter.homeownerId === user?.id,
     );
 
     setShelters(homeownerShelters);
   };
 
+  // ........................ accept or reject a student request ........................
+
   const handleRequestStatus = (requestId, status) => {
-    const updatedRequests = updateRequestStatus(
-      requestId,
-      status
-    );
+    const updatedRequests = updateRequestStatus(requestId, status);
 
     const homeownerRequests = updatedRequests.filter(
-      (request) => request.homeownerId === user?.id
+      (request) => request.homeownerId === user?.id,
     );
 
     setRequests(homeownerRequests);
   };
 
+  // ........................ keep selected shelter amenities in sync ........................
+
   const handleAmenityChange = (amenity) => {
     if (amenities.includes(amenity)) {
-      setAmenities(
-        amenities.filter((item) => item !== amenity)
-      );
+      setAmenities(amenities.filter((item) => item !== amenity));
     } else {
       setAmenities([...amenities, amenity]);
     }
   };
 
-  const resetShelterForm = () => {
-    setShelterName("");
-    setAddress("");
-    setCity("");
-    setArea("");
-    setCapacity("");
-    setPrice("");
-    setAvailability("");
-    setAmenities([]);
-    setEditingShelterId(null);
-    setShowShelterForm(false);
-  };
+  // ........................ validate and save a new shelter ........................
 
   const handleAddShelter = (e) => {
     e.preventDefault();
@@ -187,7 +139,7 @@ function HomeownerDashboard() {
       return;
     }
 
-    const shelterData = {
+    const newShelter = addShelter({
       homeownerId: user.id,
       homeownerName: user.name,
       homeownerEmail: user.email,
@@ -199,87 +151,52 @@ function HomeownerDashboard() {
       price: Number(price),
       availability,
       amenities,
-    };
+    });
 
-    if (editingShelterId) {
-      const updatedShelters = updateShelter(
-        editingShelterId,
-        shelterData
-      );
+    setShelters([...shelters, newShelter]);
 
-      setShelters(
-        updatedShelters.filter(
-          (shelter) => shelter.homeownerId === user?.id
-        )
-      );
-    } else {
-      const newShelter = addShelter(shelterData);
-      setShelters([...shelters, newShelter]);
-    }
-
-    resetShelterForm();
+    setShelterName("");
+    setAddress("");
+    setCity("");
+    setArea("");
+    setCapacity("");
+    setPrice("");
+    setAvailability("");
+    setAmenities([]);
+    setShowShelterForm(false);
   };
 
-  const handleEditShelter = (shelter) => {
-    setEditingShelterId(shelter.id);
-    setShelterName(shelter.name || "");
-    setAddress(shelter.address || "");
-    setCity(shelter.city || "");
-    setArea(shelter.area || "");
-    setCapacity(String(shelter.capacity || ""));
-    setPrice(String(shelter.price || ""));
-    setAvailability(shelter.availability || "");
-    setAmenities(Array.isArray(shelter.amenities) ? shelter.amenities : []);
-    setShelterMessage("");
-    setShowShelterForm(true);
+  // ........................ remove a shelter owned by this homeowner ........................
 
-    window.setTimeout(() => {
-      document
-        .getElementById("shelter-form")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
-  };
+  const handleDeleteShelter = (shelterId) => {
+    const shouldDelete = window.confirm(
+      "Are you sure you want to delete this shelter?",
+    );
 
-  const handleDeleteShelter = () => {
-    if (!deleteShelterId) {
+    if (!shouldDelete) {
       return;
     }
 
-    const updatedShelters = deleteShelter(deleteShelterId);
+    const updatedShelters = deleteShelter(shelterId);
+
     const homeownerShelters = updatedShelters.filter(
-      (shelter) => shelter.homeownerId === user?.id
+      (shelter) => shelter.homeownerId === user?.id,
     );
 
     setShelters(homeownerShelters);
-    setDeleteShelterId(null);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
-            <h1 className="text-2xl font-bold text-blue-600">
-              BagSafe
-            </h1>
+            <h1 className="text-2xl font-bold text-blue-600">BagSafe</h1>
 
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Homeowner Dashboard
-            </p>
+            <p className="text-sm text-slate-500">Homeowner Dashboard</p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                navigate("/login?role=homeowner", { replace: true });
-              }}
-              className="bagsafe-home-button rounded-xl px-3 py-2 text-sm font-bold sm:px-4"
-            >
-              🏠 Home
-            </button>
-
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setShowProfile(true)}
@@ -290,23 +207,19 @@ function HomeownerDashboard() {
               </div>
 
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <p className="text-sm font-semibold text-slate-800">
                   {user?.name}
                 </p>
 
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Homeowner
-                </p>
+                <p className="text-xs text-slate-500">Homeowner</p>
               </div>
             </button>
 
             <button
               type="button"
-              onClick={() => {
-                logout();
-                navigate("/login?role=homeowner", { replace: true });
-              }}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              onClick={logout}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium
+               text-slate-700 transition hover:bg-slate-100"
             >
               Logout
             </button>
@@ -320,64 +233,54 @@ function HomeownerDashboard() {
             Welcome back
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="mt-2 text-3xl font-bold text-slate-900">
             Manage your shelters and requests
           </h2>
 
-          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-            Manage your available rooms and review requests from
-            students.
+          <p className="mt-3 max-w-2xl text-slate-600">
+            Manage your available rooms and review requests from students.
           </p>
         </section>
 
-        <section className="bagsafe-section bagsafe-blue-section mb-8 rounded-3xl p-3 sm:p-4">
+        <section className="mb-8">
           <Wallet role="homeowner" />
         </section>
 
-        <section className="bagsafe-section bagsafe-purple-section grid grid-cols-1 gap-5 rounded-3xl p-4 sm:grid-cols-3 sm:p-5">
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              My Shelters
-            </p>
+        <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">My Shelters</p>
 
-            <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
+            <p className="mt-2 text-3xl font-bold text-slate-900">
               {shelters.length}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Total Requests
-            </p>
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Total Requests</p>
 
-            <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
+            <p className="mt-2 text-3xl font-bold text-slate-900">
               {requests.length}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Pending Requests
-            </p>
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Pending Requests</p>
 
             <p className="mt-2 text-3xl font-bold text-yellow-600">
               {
-                requests.filter(
-                  (request) => request.status === "pending"
-                ).length
+                requests.filter((request) => request.status === "pending")
+                  .length
               }
             </p>
           </div>
         </section>
 
-        <section className="bagsafe-section bagsafe-amber-section mt-8 rounded-3xl p-4 sm:p-6">
+        <section className="mt-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                My Shelters
-              </h3>
+              <h3 className="text-2xl font-bold text-slate-900">My Shelters</h3>
 
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-500">
                 Add and manage the places you offer to students.
               </p>
             </div>
@@ -388,22 +291,20 @@ function HomeownerDashboard() {
                 setShowShelterForm(!showShelterForm);
                 setShelterMessage("");
               }}
-              className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white
+               transition hover:bg-blue-700"
             >
-              {showShelterForm
-                ? "Close Form"
-                : "+ Add Shelter"}
+              {showShelterForm ? "Close Form" : "+ Add Shelter"}
             </button>
           </div>
 
           {showShelterForm && (
             <form
-              id="shelter-form"
               onSubmit={handleAddShelter}
-              className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
+              className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
             >
-              <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {editingShelterId ? "Edit shelter" : "Add a new shelter"}
+              <h4 className="text-xl font-bold text-slate-900">
+                Add a new shelter
               </h4>
 
               {shelterMessage && (
@@ -414,71 +315,67 @@ function HomeownerDashboard() {
 
               <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Home / Room Name
                   </label>
 
                   <input
                     type="text"
                     value={shelterName}
-                    onChange={(e) =>
-                      setShelterName(e.target.value)
-                    }
+                    onChange={(e) => setShelterName(e.target.value)}
                     placeholder="e.g. Sunrise Room"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Address
                   </label>
 
                   <input
                     type="text"
                     value={address}
-                    onChange={(e) =>
-                      setAddress(e.target.value)
-                    }
+                    onChange={(e) => setAddress(e.target.value)}
                     placeholder="Enter full address"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     City
                   </label>
 
                   <input
                     type="text"
                     value={city}
-                    onChange={(e) =>
-                      setCity(e.target.value)
-                    }
+                    onChange={(e) => setCity(e.target.value)}
                     placeholder="e.g. Noida"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Area
                   </label>
 
                   <input
                     type="text"
                     value={area}
-                    onChange={(e) =>
-                      setArea(e.target.value)
-                    }
+                    onChange={(e) => setArea(e.target.value)}
                     placeholder="e.g. Sector 62"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Capacity
                   </label>
 
@@ -486,69 +383,63 @@ function HomeownerDashboard() {
                     type="number"
                     min="1"
                     value={capacity}
-                    onChange={(e) =>
-                      setCapacity(e.target.value)
-                    }
+                    onChange={(e) => setCapacity(e.target.value)}
                     placeholder="Number of students"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Price per Student
                   </label>
 
-                  <div className="flex items-center rounded-lg border border-slate-300 bg-white px-3 dark:border-slate-600 dark:bg-slate-900">
-                    <span className="text-slate-600 dark:text-slate-300">₹</span>
+                  <div className="flex items-center rounded-lg border border-slate-300
+                   focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                    <span className="pl-4 text-slate-500">₹</span>
+
                     <input
                       type="number"
                       min="1"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="e.g. 350"
-                      className="w-full rounded-lg border-0 bg-transparent px-2 py-3 text-slate-900 placeholder-slate-400 outline-none dark:text-slate-100 dark:placeholder-slate-500"
+                      className="w-full rounded-lg px-2 py-3 outline-none"
                     />
                   </div>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Amount charged per student.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
                     Availability
                   </label>
 
                   <select
                     value={availability}
-                    onChange={(e) =>
-                      setAvailability(e.target.value)
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-blue-900/40"
+                    onChange={(e) => setAvailability(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4
+                     py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
-                    <option value="">
-                      Select availability
-                    </option>
+                    <option value="">Select availability</option>
 
-                    <option value="Few Hours">
-                      Few Hours
-                    </option>
+                    <option value="Few Hours">Few Hours</option>
 
-                    <option value="Whole Day">
-                      Whole Day
-                    </option>
+                    <option value="Whole Day">Whole Day</option>
 
-                    <option value="Whole Night">
-                      Whole Night
-                    </option>
+                    <option value="Whole Night">Whole Night</option>
 
-                    <option value="Day and Night">
-                      Day and Night
-                    </option>
+                    <option value="Day and Night">Day and Night</option>
                   </select>
                 </div>
               </div>
 
               <div className="mt-6">
-                <p className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                <p className="mb-3 text-sm font-medium text-slate-700">
                   Amenities
                 </p>
 
@@ -556,14 +447,13 @@ function HomeownerDashboard() {
                   {availableAmenities.map((amenity) => (
                     <label
                       key={amenity}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200
+                       p-3 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       <input
                         type="checkbox"
                         checked={amenities.includes(amenity)}
-                        onChange={() =>
-                          handleAmenityChange(amenity)
-                        }
+                        onChange={() => handleAmenityChange(amenity)}
                         className="h-4 w-4"
                       />
 
@@ -575,23 +465,24 @@ function HomeownerDashboard() {
 
               <button
                 type="submit"
-                className="mt-6 rounded-xl bg-green-600 px-6 py-3 font-semibold text-white transition hover:bg-green-700"
+                className="mt-6 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white 
+                transition hover:bg-green-700"
               >
-                {editingShelterId ? "Save Shelter Changes" : "Add Shelter"}
+                Add Shelter
               </button>
             </form>
           )}
 
           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
             {shelters.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2 dark:border-slate-600 dark:bg-slate-900">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2">
                 <div className="text-4xl">🏠</div>
 
-                <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
+                <h4 className="mt-4 text-lg font-semibold text-slate-800">
                   No shelters added yet
                 </h4>
 
-                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-2 text-sm text-slate-500">
                   Add your first shelter so students can find it.
                 </p>
               </div>
@@ -599,53 +490,40 @@ function HomeownerDashboard() {
               shelters.map((shelter) => (
                 <div
                   key={shelter.id}
-                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
+                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                      <h4 className="text-xl font-bold text-slate-900">
                         {shelter.name}
                       </h4>
 
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 text-sm text-slate-500">
                         {shelter.area}, {shelter.city}
                       </p>
 
-                      <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                      <p className="mt-1 text-xs font-medium text-slate-600">
                         Hosted by {shelter.homeownerName || user?.name}
                       </p>
                     </div>
 
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleEditShelter(shelter)}
-                        className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteShelterId(shelter.id)}
-                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteShelter(shelter.id)}
+                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
                   </div>
 
-                  <div className="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                    <p>
-                      📍 {shelter.address}
-                    </p>
+                  <div className="mt-5 space-y-2 text-sm text-slate-600">
+                    <p>📍 {shelter.address}</p>
 
-                    <p>
-                      👥 Capacity: {shelter.capacity} students
-                    </p>
+                    <p>👥 Capacity: {shelter.capacity} students</p>
 
-                    <p>
-                      🕐 Availability: {shelter.availability}
-                    </p>
+                    <p>💰 Price: ₹{shelter.price} per student</p>
+
+                    <p>🕐 Availability: {shelter.availability}</p>
                   </div>
 
                   {shelter.amenities.length > 0 && (
@@ -666,41 +544,41 @@ function HomeownerDashboard() {
           </div>
         </section>
 
-        <section className="bagsafe-section bagsafe-rose-section mt-12 rounded-3xl p-4 sm:p-6">
+        <section className="mt-12">
           <div className="mb-5">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="text-2xl font-bold text-slate-900">
               Student Requests
             </h3>
 
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-slate-500">
               Requests sent to your shelters will appear here.
             </p>
           </div>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-600 dark:bg-slate-900">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
               <div className="text-4xl">📩</div>
 
-              <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
+              <h4 className="mt-4 text-lg font-semibold text-slate-800">
                 No requests yet
               </h4>
 
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
-                When a student sends a request to one of your
-                shelters, you will see it here.
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                When a student sends a request to one of your shelters, you will
+                see it here.
               </p>
             </div>
           ) : (
-            <div className="max-h-[620px] space-y-5 overflow-y-auto pr-1">
+            <div className="space-y-5">
               {requests.map((request) => (
                 <div
                   key={request.requestId}
-                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
+                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
                 >
                   <div className="flex flex-col justify-between gap-4 sm:flex-row">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
-                        <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        <h4 className="text-xl font-bold text-slate-900">
                           {request.studentName}
                         </h4>
 
@@ -709,80 +587,71 @@ function HomeownerDashboard() {
                             request.status === "accepted"
                               ? "bg-green-50 text-green-700"
                               : request.status === "rejected"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300"
+                                ? "bg-red-50 text-red-700"
+                                : "bg-yellow-50 text-yellow-700"
                           }`}
                         >
                           {request.status}
                         </span>
                       </div>
 
-                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                      <p className="mt-2 text-sm text-slate-500">
                         Request ID: {request.requestId}
                       </p>
                     </div>
 
                     <div className="text-left sm:text-right">
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Shelter
-                      </p>
+                      <p className="text-sm text-slate-500">Shelter</p>
 
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                      <p className="font-semibold text-slate-900">
                         {request.shelterName}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-950">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Students
-                      </p>
+                    <div className="rounded-lg bg-slate-50 p-4">
+                      <p className="text-xs text-slate-500">Students</p>
 
-                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
+                      <p className="mt-1 font-semibold text-slate-900">
                         {request.students}
                       </p>
                     </div>
 
-                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-950">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Location
-                      </p>
+                    <div className="rounded-lg bg-slate-50 p-4">
+                      <p className="text-xs text-slate-500">Location</p>
 
-                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
+                      <p className="mt-1 font-semibold text-slate-900">
                         {request.area}, {request.city}
                       </p>
                     </div>
 
-                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-950">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Estimated Amount
-                      </p>
+                    <div className="rounded-lg bg-slate-50 p-4">
+                      <p className="text-xs text-slate-500">Estimated Amount</p>
 
-                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
+                      <p className="mt-1 font-semibold text-slate-900">
                         ₹{request.totalCost}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-5">
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <p className="text-sm font-semibold text-slate-700">
                       Student Message
                     </p>
 
-                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                      {request.message ||
-                        "No message provided."}
+                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                      {request.message || "No message provided."}
                     </div>
                   </div>
 
                   {request.verificationDocument && (
-                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
                       <p className="text-sm font-semibold text-green-700">
                         ✓ Exam document submitted
                       </p>
 
-                      <p className="mt-1 text-xs text-green-700 dark:text-green-300">
+                      <p className="mt-1 text-xs text-green-600">
                         {request.verificationDocument}
                       </p>
                     </div>
@@ -791,10 +660,9 @@ function HomeownerDashboard() {
                   <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <button
                       type="button"
-                      onClick={() =>
-                        setChatRequest(request)
-                      }
-                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                      onClick={() => setChatRequest(request)}
+                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 
+                      text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                     >
                       💬 Chat with Student
                     </button>
@@ -804,12 +672,10 @@ function HomeownerDashboard() {
                         <button
                           type="button"
                           onClick={() =>
-                            handleRequestStatus(
-                              request.requestId,
-                              "rejected"
-                            )
+                            handleRequestStatus(request.requestId, "rejected")
                           }
-                          className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
+                          className="rounded-lg border border-red-200 px-5 py-3 text-sm
+                           font-semibold text-red-600 transition hover:bg-red-50"
                         >
                           Reject Request
                         </button>
@@ -817,12 +683,10 @@ function HomeownerDashboard() {
                         <button
                           type="button"
                           onClick={() =>
-                            handleRequestStatus(
-                              request.requestId,
-                              "accepted"
-                            )
+                            handleRequestStatus(request.requestId, "accepted")
                           }
-                          className="rounded-lg bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+                          className="rounded-lg bg-green-600 px-5 py-3 text-sm font-semibold
+                           text-white transition hover:bg-green-700"
                         >
                           Accept Request
                         </button>
@@ -836,36 +700,12 @@ function HomeownerDashboard() {
         </section>
       </main>
 
-      {deleteShelterId && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl dark:border-red-900 dark:bg-slate-900">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-600">Delete shelter</p>
-                <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-slate-100">Are you sure?</h3>
-              </div>
-              <button type="button" onClick={() => setDeleteShelterId(null)} className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-2xl font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">×</button>
-            </div>
-            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">This shelter will be removed from your homeowner dashboard and will no longer appear in future searches.</p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button type="button" onClick={handleDeleteShelter} className="flex-1 rounded-xl bg-red-600 px-4 py-3 font-bold text-white hover:bg-red-700">Delete Shelter</button>
-              <button type="button" onClick={() => setDeleteShelterId(null)} className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showProfile && (
-        <HomeownerProfile
-          onClose={() => setShowProfile(false)}
-        />
+        <HomeownerProfile onClose={() => setShowProfile(false)} />
       )}
 
       {chatRequest && (
-        <Chat
-          request={chatRequest}
-          onClose={() => setChatRequest(null)}
-        />
+        <Chat request={chatRequest} onClose={() => setChatRequest(null)} />
       )}
     </div>
   );

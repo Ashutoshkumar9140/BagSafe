@@ -20,7 +20,6 @@ export const places = [
     rating: "4.8",
     facilities: ["Bag storage", "Waiting area", "Drinking water"],
   },
-
   {
     id: 2,
     name: "Sharma Safe Corner",
@@ -29,7 +28,6 @@ export const places = [
     rating: "4.7",
     facilities: ["Bag storage", "Phone charging", "Restroom"],
   },
-
   {
     id: 3,
     name: "Verma Study Stop",
@@ -45,12 +43,10 @@ export const reviews = [
     name: "Riya Singh",
     text: "The waiting area was clean and my bag was completely safe.",
   },
-
   {
     name: "Aman Kumar",
     text: "Very helpful owner. It made my exam day much easier.",
   },
-
   {
     name: "Sneha Patel",
     text: "Booking was simple and the location was easy to find.",
