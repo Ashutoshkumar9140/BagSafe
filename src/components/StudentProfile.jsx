@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 function StudentProfile({ onClose }) {
-  const {
-    user,
-    logout,
-    updateProfile,
-    deleteAccount,
-  } = useApp();
+  const { user, updateProfile, deleteAccount } = useApp();
 
   const navigate = useNavigate();
 
@@ -22,13 +17,11 @@ function StudentProfile({ onClose }) {
   const [name, setName] = useState(user?.name || "");
   const [age, setAge] = useState(user?.age || "");
   const [sex, setSex] = useState(user?.sex || "");
-  const [nationality, setNationality] = useState(
-    user?.nationality || ""
-  );
+  const [nationality, setNationality] = useState(user?.nationality || "");
   const [mobile, setMobile] = useState(user?.mobile || "");
   const [email, setEmail] = useState(user?.email || "");
   const [permanentAddress, setPermanentAddress] = useState(
-    user?.permanentAddress || ""
+    user?.permanentAddress || "",
   );
 
   useEffect(() => {
@@ -42,127 +35,9 @@ function StudentProfile({ onClose }) {
   }, [user]);
 
   const verificationDocument =
-    JSON.parse(
-      localStorage.getItem(
-        "bagsafeVerificationDocuments"
-      )
-    )?.find(
-      (document) => document.studentId === user?.id
+    JSON.parse(localStorage.getItem("bagsafeVerificationDocuments"))?.find(
+      (document) => document.studentId === user?.id,
     ) || null;
-
-  // ........................ save the student profile changes ........................
-
-  const handleSave = (e) => {
-    e.preventDefault();
-
-    setMessage("");
-
-    if (
-      !name.trim() ||
-      !age ||
-      !sex ||
-      !nationality.trim() ||
-      !mobile.trim() ||
-      !email.trim()
-    ) {
-      setMessage("Please fill in all required fields.");
-      return;
-    }
-
-    if (Number(age) < 18 || Number(age) > 100) {
-      setMessage("Age must be between 18 and 100.");
-      return;
-    }
-
-    if (!/^[0-9]{10}$/.test(mobile)) {
-      setMessage(
-        "Mobile number must contain exactly 10 digits."
-      );
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setMessage("Please enter a valid email address.");
-      return;
-    }
-
-    const users =
-      JSON.parse(
-        localStorage.getItem("bagsafeUsers")
-      ) || [];
-
-    const emailExists = users.some(
-      (item) =>
-        item.id !== user.id &&
-        item.email.toLowerCase() ===
-          email.toLowerCase()
-    );
-
-    const mobileExists = users.some(
-      (item) =>
-        item.id !== user.id &&
-        item.mobile === mobile
-    );
-
-    if (emailExists) {
-      setMessage("This email is already registered.");
-      return;
-    }
-
-    if (mobileExists) {
-      setMessage(
-        "This mobile number is already registered."
-      );
-      return;
-    }
-
-    const result = updateProfile({
-      name: name.trim(),
-      age,
-      sex,
-      nationality: nationality.trim(),
-      mobile: mobile.trim(),
-      email: email.trim(),
-      permanentAddress: permanentAddress.trim(),
-    });
-
-    if (result !== "success") {
-      setMessage(result);
-      return;
-    }
-
-    setMessage("Profile updated successfully.");
-    setEditing(false);
-  };
-
-  // ........................ restore the profile before editing ........................
-
-  const handleCancelEdit = () => {
-    setName(user?.name || "");
-    setAge(user?.age || "");
-    setSex(user?.sex || "");
-    setNationality(user?.nationality || "");
-    setMobile(user?.mobile || "");
-    setEmail(user?.email || "");
-    setPermanentAddress(user?.permanentAddress || "");
-
-    setMessage("");
-    setEditing(false);
-  };
-
-  // ........................ clear the current session before leaving ........................
-
-  const handleLogout = () => {
-    const shouldLogout = window.confirm(
-      "Are you sure you want to logout?"
-    );
-
-    if (!shouldLogout) {
-      return;
-    }
-
-    logout();
-  };
 
   // ........................ permanently remove the student account ........................
 
@@ -191,20 +66,20 @@ function StudentProfile({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-4 sm:px-4 sm:py-6">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl dark:bg-blue-950/60">
               🎓
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 Student Profile
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Manage your student account information.
               </p>
             </div>
@@ -214,7 +89,7 @@ function StudentProfile({ onClose }) {
             type="button"
             onClick={onClose}
             className="rounded-lg px-3 py-2 text-2xl text-slate-400 transition
-             hover:bg-slate-100 hover:text-slate-700"
+             hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700"
           >
             ×
           </button>
@@ -222,151 +97,157 @@ function StudentProfile({ onClose }) {
 
         <div className="p-6">
           {message && (
-            <div className="mb-6 rounded-lg border border-blue-200
-             bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            <div
+              className="mb-6 rounded-lg border border-blue-200
+             bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300"
+            >
               {message}
             </div>
           )}
 
           {!editing ? (
             <>
-              {/* Personal Information.............................. */}
+              {/* Personal Information......................................... */}
 
               <section>
                 <div className="mb-5">
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                     Personal Information
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Information provided during student registration.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Full Name
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
                       {user?.name}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Age
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
                       {user?.age}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Sex
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
                       {user?.sex}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Nationality
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
                       {user?.nationality}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Mobile Number
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
                       {user?.mobile}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Email
                     </p>
 
-                    <p className="mt-1 break-all font-semibold text-slate-800">
+                    <p className="mt-1 break-all font-semibold text-slate-800 dark:text-slate-200">
                       {user?.email}
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2 dark:bg-slate-950">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       Permanent Address
                     </p>
 
-                    <p className="mt-1 font-semibold text-slate-800">
-                      {user?.permanentAddress ||
-                        "Not added yet"}
+                    <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
+                      {user?.permanentAddress || "Not added yet"}
                     </p>
                   </div>
                 </div>
               </section>
 
-              {/* Verification ..........................................*/}
+              {/* Verification ...................................................................................................*/}
 
-              <section className="mt-8 border-t border-slate-200 pt-6">
+              <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
                 <div className="mb-5">
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                     Exam Verification
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Your exam document helps homeowners review your request.
                   </p>
                 </div>
 
                 {verificationDocument ? (
-                  <div className="flex flex-col justify-between gap-4 rounded-xl border
-                   border-green-200 bg-green-50 p-5 sm:flex-row sm:items-center">
+                  <div
+                    className="flex flex-col justify-between gap-4 rounded-xl border
+                   border-green-200 bg-green-50 p-5 sm:flex-row sm:items-center dark:border-green-900 dark:bg-green-950/40"
+                  >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-100 text-xl">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-100 text-xl dark:bg-green-950/60">
                         📄
                       </div>
 
                       <div>
-                        <p className="font-semibold text-green-800">
+                        <p className="font-semibold text-green-800 dark:text-green-200">
                           {verificationDocument.fileName}
                         </p>
 
-                        <p className="mt-1 text-xs text-green-600">
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                           Submitted{" "}
                           {new Date(
-                            verificationDocument.uploadedAt
+                            verificationDocument.uploadedAt,
                           ).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
 
-                    <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    <span
+                      className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700
+                     dark:bg-green-950/60 dark:text-green-300"
+                    >
                       Submitted
                     </span>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5">
+                  <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 dark:border-yellow-900 dark:bg-yellow-950/40">
                     <div className="flex items-center gap-3">
                       <span className="text-xl">⚠️</span>
 
                       <div>
-                        <p className="font-semibold text-yellow-800">
+                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">
                           Exam document not submitted
                         </p>
 
-                        <p className="mt-1 text-sm text-yellow-700">
+                        <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
                           Upload your admit card or exam-related document from
                           your Student Dashboard.
                         </p>
@@ -376,20 +257,20 @@ function StudentProfile({ onClose }) {
                 )}
               </section>
 
-              {/* Settings................................................... */}
+              {/* Settings............................................................................................................ */}
 
-              <section className="mt-8 border-t border-slate-200 pt-6">
+              <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                     ⚙️
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                       Account Settings
                     </h3>
 
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       Manage your account and profile.
                     </p>
                   </div>
@@ -403,18 +284,9 @@ function StudentProfile({ onClose }) {
                       setMessage("");
                     }}
                     className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold
-                     text-white transition hover:bg-blue-700"
+                     text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
                   >
                     Edit Profile
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold
-                     text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Logout
                   </button>
 
                   <button
@@ -425,57 +297,59 @@ function StudentProfile({ onClose }) {
                       setDeletePassword("");
                     }}
                     className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold
-                     text-red-600 transition hover:bg-red-50"
+                     text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/50"
                   >
                     Delete Account
                   </button>
                 </div>
               </section>
 
-              {/* Delete Account.............................................. */}
+              {/* Delete Account....................................................................................................... */}
 
               {showDeleteBox && (
-                <section className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5">
-                  <h3 className="font-bold text-red-800">
+                <section
+                  className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5
+                 dark:border-red-900 dark:bg-red-950/40"
+                >
+                  <h3 className="font-bold text-red-800 dark:text-red-200">
                     Delete your account?
                   </h3>
 
-                  <p className="mt-2 text-sm leading-6 text-red-700">
-                    This will permanently remove your student account,
-                    requests, verification information, and other account
-                    data stored by this demo application.
+                  <p className="mt-2 text-sm leading-6 text-red-700 dark:text-red-300">
+                    This will permanently remove your student account, requests,
+                    verification information, and other account data stored by
+                    this demo application.
                   </p>
 
                   {deleteMessage && (
-                    <div className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm text-red-700">
+                    <div
+                      className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm
+                     text-red-700 dark:border-red-900 dark:bg-slate-900 dark:text-red-300"
+                    >
                       {deleteMessage}
                     </div>
                   )}
 
-                  <form
-                    onSubmit={handleDeleteAccount}
-                    className="mt-5"
-                  >
-                    <label className="mb-2 block text-sm font-medium text-red-800">
+                  <form onSubmit={handleDeleteAccount} className="mt-5">
+                    <label className="mb-2 block text-sm font-medium text-red-800 dark:text-red-200">
                       Enter your current password
                     </label>
 
                     <input
                       type="password"
                       value={deletePassword}
-                      onChange={(e) =>
-                        setDeletePassword(e.target.value)
-                      }
+                      onChange={(e) => setDeletePassword(e.target.value)}
                       placeholder="Enter password"
                       className="w-full rounded-lg border border-red-200 bg-white px-4 py-3 outline-none
-                       focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                       focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-900
+                        dark:bg-slate-900 dark:focus:border-red-400 dark:focus:ring-red-900/50"
                     />
 
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                       <button
                         type="submit"
                         className="rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold
-                         text-white transition hover:bg-red-700"
+                         text-white transition hover:bg-red-700 dark:hover:bg-red-500"
                       >
                         Permanently Delete
                       </button>
@@ -488,7 +362,8 @@ function StudentProfile({ onClose }) {
                           setDeleteMessage("");
                         }}
                         className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold
-                         text-slate-700 transition hover:bg-slate-50"
+                         text-slate-700 transition hover:bg-slate-50 dark:border-slate-600
+                          dark:bg-slate-900 dark:text-slate-300"
                       >
                         Cancel
                       </button>
@@ -498,23 +373,22 @@ function StudentProfile({ onClose }) {
               )}
             </>
           ) : (
+            /* Edit Profile ...............................................................................................................*/
 
-            /* Edit Profile .....................................................*/
-            
             <form onSubmit={handleSave}>
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   Edit Student Profile
                 </h3>
 
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   Update your personal information below.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Full Name
                   </label>
 
@@ -523,12 +397,13 @@ function StudentProfile({ onClose }) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Age
                   </label>
 
@@ -539,12 +414,13 @@ function StudentProfile({ onClose }) {
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Sex
                   </label>
 
@@ -552,7 +428,8 @@ function StudentProfile({ onClose }) {
                     value={sex}
                     onChange={(e) => setSex(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:bg-slate-900 dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   >
                     <option value="">Select sex</option>
                     <option value="Male">Male</option>
@@ -562,23 +439,22 @@ function StudentProfile({ onClose }) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Nationality
                   </label>
 
                   <input
                     type="text"
                     value={nationality}
-                    onChange={(e) =>
-                      setNationality(e.target.value)
-                    }
+                    onChange={(e) => setNationality(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Mobile Number
                   </label>
 
@@ -588,12 +464,13 @@ function StudentProfile({ onClose }) {
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Email
                   </label>
 
@@ -602,24 +479,24 @@ function StudentProfile({ onClose }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Permanent Address
                   </label>
 
                   <textarea
                     value={permanentAddress}
-                    onChange={(e) =>
-                      setPermanentAddress(e.target.value)
-                    }
+                    onChange={(e) => setPermanentAddress(e.target.value)}
                     placeholder="Enter your permanent address"
                     rows="4"
                     className="w-full resize-none rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600
+                      dark:focus:border-blue-400 dark:focus:ring-blue-900/50"
                   />
                 </div>
               </div>
@@ -627,7 +504,7 @@ function StudentProfile({ onClose }) {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+                  className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
                 >
                   Save Changes
                 </button>
@@ -636,7 +513,7 @@ function StudentProfile({ onClose }) {
                   type="button"
                   onClick={handleCancelEdit}
                   className="rounded-lg border border-slate-300 px-6 py-3 font-semibold
-                   text-slate-700 transition hover:bg-slate-50"
+                   text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>

@@ -62,6 +62,7 @@ function Home() {
   ];
 
   return (
+    
     <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <Navbar />
 
@@ -71,7 +72,7 @@ function Home() {
          dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/30"
         >
           <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-24 lg:px-8">
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
               Welcome to BagSafe
             </p>
             <h1 className="mx-auto max-w-4xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
@@ -98,16 +99,21 @@ function Home() {
                 className="rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-sm
                dark:border-blue-900 dark:bg-slate-900/80"
               >
-                <p className="text-2xl font-black text-blue-600">10+</p>
+                <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
+                  10+
+                </p>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Supported cities
                 </p>
               </div>
+
               <div
                 className="rounded-2xl border border-cyan-100 bg-white/80 p-4 shadow-sm
                dark:border-cyan-900 dark:bg-slate-900/80"
               >
-                <p className="text-2xl font-black text-cyan-600">24/7</p>
+                <p className="text-2xl font-black text-cyan-600 dark:text-cyan-400">
+                  24/7
+                </p>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Simple request tracking
                 </p>
@@ -116,7 +122,9 @@ function Home() {
                 className="rounded-2xl border border-violet-100 bg-white/80 p-4 shadow-sm
                dark:border-violet-900 dark:bg-slate-900/80"
               >
-                <p className="text-2xl font-black text-violet-600">1</p>
+                <p className="text-2xl font-black text-violet-600 dark:text-violet-400">
+                  1
+                </p>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Dashboard for everything
                 </p>
@@ -128,7 +136,7 @@ function Home() {
         <section className="border-y border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-600">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
                 Explore locations
               </p>
               <h2 className="mt-2 text-3xl font-black">
@@ -204,9 +212,11 @@ function Home() {
                     {"★".repeat(review.rating)}
                     {"☆".repeat(5 - review.rating)}
                   </div>
+
                   <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
                     “{review.text}”
                   </p>
+
                   <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-700">
                     <p className="font-bold">{review.name}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -226,7 +236,7 @@ function Home() {
         >
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-600">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
                 About BagSafe
               </p>
               <h2 className="mt-2 text-3xl font-black">
@@ -255,7 +265,7 @@ function Home() {
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 text-sm text-slate-300">
               <p>📧 support@bagsafe.demo</p>
-              <p>📞 +91 98765 43210</p>
+              <p>📞 +91 98765 XXXXX</p>
             </div>
           </div>
         </section>

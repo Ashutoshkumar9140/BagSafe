@@ -9,8 +9,7 @@ function Chat({ request, onClose }) {
 
   const chatKey = `bagsafeChat_${request.requestId}`;
 
-
-// ......................................... load the saved conversation for this request ................................
+  // ......................................... load the saved conversation for this request ................................
 
   const loadMessages = () => {
     try {
@@ -21,7 +20,7 @@ function Chat({ request, onClose }) {
     }
   };
 
-// ......................................... refresh chat when another user updates the conversation ................................
+  // ......................................... refresh chat when another user updates the conversation ................................
 
   useEffect(() => {
     loadMessages();
@@ -34,7 +33,7 @@ function Chat({ request, onClose }) {
     window.addEventListener("bagsafeChatUpdated", handleChatUpdate);
     window.addEventListener("storage", handleStorageUpdate);
 
-  // ......................................... render the conversation and message composer ................................
+    // ......................................... render the conversation and message composer ................................
 
     return () => {
       window.removeEventListener("bagsafeChatUpdated", handleChatUpdate);
@@ -44,8 +43,7 @@ function Chat({ request, onClose }) {
 
   // ........................ validate and save a new chat message ........................
 
-
-// ............ validate and save a new message before refreshing the chat .........................
+  // ............ validate and save a new message before refreshing the chat .........................
 
   const sendMessage = (e) => {
     e.preventDefault();
@@ -92,7 +90,7 @@ function Chat({ request, onClose }) {
   const requestStatus = request.status || "pending";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 dark:bg-slate-900/80">
       <div className="flex h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
         <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">
@@ -111,7 +109,9 @@ function Chat({ request, onClose }) {
               type="button"
               onClick={onClose}
               aria-label="Close chat"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-3xl font-semibold leading-none text-red-500 transition hover:bg-red-100 hover:text-red-700 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/70"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-3xl font-semibold 
+              leading-none text-red-500 transition hover:bg-red-100 hover:text-red-700 dark:bg-red-950/40
+               dark:text-red-400 dark:hover:bg-red-950/70"
             >
               ×
             </button>
@@ -129,7 +129,8 @@ function Chat({ request, onClose }) {
                 </h4>
 
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Ask about arrival time, shelter details, location, availability or any other booking questions.
+                  Ask about arrival time, shelter details, location,
+                  availability or any other booking questions.
                 </p>
               </div>
             </div>
@@ -195,12 +196,14 @@ function Chat({ request, onClose }) {
                 if (error) setError("");
               }}
               placeholder="Type your message..."
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-950 dark:focus:ring-blue-900/50"
+              className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition
+               focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-950 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
             />
 
             <button
               type="submit"
-              className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:px-5"
+              className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition
+               hover:bg-blue-700 sm:px-5 dark:hover:bg-blue-500"
             >
               Send
             </button>

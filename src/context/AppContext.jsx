@@ -116,6 +116,191 @@ function AppProvider({ children }) {
     }
   });
 
+  // ........................ seed the main demo account with realistic dashboard data ........................
+
+  const seedDemoHomeownerData = () => {
+    if (localStorage.getItem("bagsafeDemoDataSeeded") === "true") {
+      return;
+    }
+
+    const demoShelters = [
+      {
+        id: "demo-owner1-shelter-1",
+        homeownerId: "owner1",
+        homeownerName: "Rajesh Sharma",
+        homeownerEmail: "owner1@bagsafe.demo",
+        homeownerPassword: "owner123",
+        name: "Green View Home",
+        address: "24 Exam Road, Near IIT Delhi",
+        city: "New Delhi",
+        area: "Hauz Khas",
+        capacity: 5,
+        price: 350,
+        availability: "Day and Night",
+        amenities: ["Drinking Water", "Fan", "Charging"],
+      },
+      {
+        id: "demo-owner1-shelter-2",
+        homeownerId: "owner1",
+        homeownerName: "Rajesh Sharma",
+        homeownerEmail: "owner1@bagsafe.demo",
+        homeownerPassword: "owner123",
+        name: "Green View Study Room",
+        address: "26 Exam Road, Near IIT Delhi",
+        city: "New Delhi",
+        area: "Hauz Khas",
+        capacity: 3,
+        price: 250,
+        availability: "Whole Day",
+        amenities: ["Wi-Fi", "Chairs", "Drinking Water"],
+      },
+    ];
+
+    const demoRequests = [
+      {
+        id: "demo-request-1",
+        requestId: "BS-DEMO-1001",
+        status: "pending",
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        paymentStatus: "reserved",
+        paymentAmount: 700,
+        studentId: "demo-student-1",
+        studentName: "Aarav Kumar",
+        studentEmail: "aarav@example.com",
+        homeownerId: "owner1",
+        homeownerName: "Rajesh Sharma",
+        shelterId: "demo-owner1-shelter-1",
+        shelterName: "Green View Home",
+        shelterCapacity: 5,
+        shelterPrice: 350,
+        shelterAvailability: "Day and Night",
+        shelterAmenities: ["Drinking Water", "Fan", "Charging"],
+        students: 2,
+        totalCost: 700,
+        area: "Hauz Khas",
+        city: "New Delhi",
+        message: "I need a safe place near IIT Delhi for my exam day.",
+      },
+      {
+        id: "demo-request-2",
+        requestId: "BS-DEMO-1002",
+        status: "accepted",
+        createdAt: new Date(Date.now() - 172800000).toISOString(),
+        paymentStatus: "completed",
+        paymentAmount: 350,
+        studentId: "demo-student-2",
+        studentName: "Priya Singh",
+        studentEmail: "priya@example.com",
+        homeownerId: "owner1",
+        homeownerName: "Rajesh Sharma",
+        shelterId: "demo-owner1-shelter-1",
+        shelterName: "Green View Home",
+        shelterCapacity: 5,
+        shelterPrice: 350,
+        shelterAvailability: "Day and Night",
+        shelterAmenities: ["Drinking Water", "Fan", "Charging"],
+        students: 1,
+        totalCost: 350,
+        area: "Hauz Khas",
+        city: "New Delhi",
+        message: "Thank you. I would like to book one spot.",
+      },
+      {
+        id: "demo-request-3",
+        requestId: "BS-DEMO-1003",
+        status: "rejected",
+        createdAt: new Date(Date.now() - 259200000).toISOString(),
+        paymentStatus: "refunded",
+        paymentAmount: 250,
+        studentId: "demo-student-3",
+        studentName: "Rohan Verma",
+        studentEmail: "rohan@example.com",
+        homeownerId: "owner1",
+        homeownerName: "Rajesh Sharma",
+        shelterId: "demo-owner1-shelter-2",
+        shelterName: "Green View Study Room",
+        shelterCapacity: 3,
+        shelterPrice: 250,
+        shelterAvailability: "Whole Day",
+        shelterAmenities: ["Wi-Fi", "Chairs", "Drinking Water"],
+        students: 1,
+        totalCost: 250,
+        area: "Hauz Khas",
+        city: "New Delhi",
+        message: "I need a room for my afternoon examination.",
+      },
+    ];
+
+    const demoWallet = {
+      balance: 3850,
+      reservedBalance: 700,
+      totalEarnings: 350,
+      pendingEarnings: 700,
+      totalWithdrawn: 1200,
+      transactions: [
+        {
+          id: "demo-transaction-1",
+          type: "pending",
+          title: "Booking Payment Pending",
+          amount: 700,
+          requestId: "BS-DEMO-1001",
+          date: new Date(Date.now() - 86400000).toLocaleString(),
+        },
+        {
+          id: "demo-transaction-2",
+          type: "credit",
+          title: "Booking Payment Received",
+          amount: 350,
+          requestId: "BS-DEMO-1002",
+          date: new Date(Date.now() - 172800000).toLocaleString(),
+        },
+        {
+          id: "demo-transaction-3",
+          type: "cancelled",
+          title: "Booking Payment Cancelled",
+          amount: 250,
+          requestId: "BS-DEMO-1003",
+          date: new Date(Date.now() - 259200000).toLocaleString(),
+        },
+        {
+          id: "demo-transaction-4",
+          type: "debit",
+          title: "Money Withdrawn",
+          amount: 1200,
+          date: new Date(Date.now() - 345600000).toLocaleString(),
+        },
+      ],
+    };
+
+    const existingShelters = readStorage("bagsafeOwnerShelters", []);
+    const existingRequests = readStorage("bagsafeRequests", []);
+
+    writeStorage("bagsafeOwnerShelters", [
+      ...existingShelters,
+      ...demoShelters.filter(
+        (shelter) =>
+          !existingShelters.some(
+            (item) => String(item.id) === String(shelter.id),
+          ),
+      ),
+    ]);
+
+    writeStorage("bagsafeRequests", [
+      ...existingRequests,
+      ...demoRequests.filter(
+        (request) =>
+          !existingRequests.some(
+            (item) => item.requestId === request.requestId,
+          ),
+      ),
+    ]);
+
+    writeStorage("bagsafeWallet_owner1", demoWallet);
+    localStorage.setItem("bagsafeDemoDataSeeded", "true");
+  };
+
+  seedDemoHomeownerData();
+
   // ........................ load demo homeowners and saved owner changes ........................
 
   const getDemoHomeowners = () => {
@@ -418,6 +603,39 @@ function AppProvider({ children }) {
       paymentAmount: totalCost,
       ...requestData,
     };
+
+    // ................................. keep the requested shelter visible for its homeowner ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+    // A request must always have a matching shelter on the homeowner dashboard, including demo shelters.
+    const ownerShelters = readStorage("bagsafeOwnerShelters", []);
+    const alreadySaved = ownerShelters.some(
+      (shelter) =>
+        String(shelter.id) === String(requestData.shelterId) &&
+        String(shelter.homeownerId) === String(requestData.homeownerId),
+    );
+
+    if (!alreadySaved) {
+      ownerShelters.push({
+        id: requestData.shelterId,
+        homeownerId: requestData.homeownerId,
+        homeownerName: requestData.homeownerName || "Demo Homeowner",
+        homeownerEmail: requestData.homeownerEmail || "",
+        homeownerPassword: requestData.homeownerPassword || "owner123",
+        name: requestData.shelterName || "Requested Shelter",
+        address: requestData.shelterAddress || "",
+        city: requestData.city || "",
+        area: requestData.area || "",
+        capacity: Number(requestData.shelterCapacity) || 0,
+        price: Number(requestData.shelterPrice) || 0,
+        availability: requestData.shelterAvailability || "",
+        amenities: Array.isArray(requestData.shelterAmenities)
+          ? requestData.shelterAmenities
+          : [],
+      });
+
+      writeStorage("bagsafeOwnerShelters", ownerShelters);
+      window.dispatchEvent(new Event("bagsafeShelterUpdated"));
+    }
 
     const studentTransaction = {
       id: now + 1,

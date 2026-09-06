@@ -431,7 +431,9 @@ function StudentDashboard() {
       <header className="border-b border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
-            <h1 className="text-2xl font-bold text-blue-600">BagSafe</h1>
+            <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              BagSafe
+            </h1>
 
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Student Dashboard
@@ -456,8 +458,10 @@ function StudentDashboard() {
               className="flex items-center gap-3 rounded-xl px-2 py-2 transition
                hover:bg-slate-100 dark:hover:bg-slate-700"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full
-               bg-blue-100 text-lg dark:bg-blue-950/60">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-full
+               bg-blue-100 text-lg dark:bg-blue-950/60"
+              >
                 🎓
               </div>
 
@@ -490,7 +494,7 @@ function StudentDashboard() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         <section className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             Welcome back
           </p>
 
@@ -526,22 +530,28 @@ function StudentDashboard() {
             </div>
 
             {verificationDocuments.length > 0 ? (
-              <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
-               text-green-700 dark:bg-green-950/40 dark:text-green-300">
+              <span
+                className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
+               text-green-700 dark:bg-green-950/40 dark:text-green-300"
+              >
                 {verificationDocuments.length} Document
                 {verificationDocuments.length > 1 ? "s" : ""} Submitted
               </span>
             ) : (
-              <span className="w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold
-               text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300">
+              <span
+                className="w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold
+               text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300"
+              >
                 Not Submitted
               </span>
             )}
           </div>
 
           {documentMessage && (
-            <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm
-             text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+            <div
+              className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm
+             text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900"
+            >
               {documentMessage}
             </div>
           )}
@@ -607,10 +617,12 @@ function StudentDashboard() {
                         );
                       })}
 
-                      <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 
+                      <label
+                        className="flex cursor-pointer items-center justify-center rounded-xl border-2 
                       border-dashed border-emerald-300 bg-white px-4 py-3 text-center text-sm font-bold
                        text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-50
-                        dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
+                        dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                      >
                         + Select another admit card / identity document
                         <input
                           type="file"
@@ -661,7 +673,7 @@ function StudentDashboard() {
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
                  focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
-                  dark:border-slate-600 dark:focus:ring-blue-900/50"
+                  dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
               >
                 <option value="">Select city</option>
 
@@ -684,7 +696,7 @@ function StudentDashboard() {
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Noida Sector 62"
                 className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
-                 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
               />
             </div>
 
@@ -698,7 +710,7 @@ function StudentDashboard() {
                 onChange={(e) => setStudents(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
                  focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
-                  dark:border-slate-600 dark:focus:ring-blue-900/50"
+                  dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
               >
                 <option value="1">1 Student</option>
                 <option value="2">2 Students</option>
@@ -711,7 +723,7 @@ function StudentDashboard() {
             <div className="flex items-end">
               <button
                 type="submit"
-                className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
+                className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
               >
                 Search Shelters
               </button>
@@ -719,8 +731,10 @@ function StudentDashboard() {
           </form>
 
           {message && (
-            <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm
-             text-red-700 dark:bg-red-950/40 dark:text-red-300">
+            <div
+              className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm
+             text-red-700 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900"
+            >
               {message}
             </div>
           )}
@@ -733,7 +747,7 @@ function StudentDashboard() {
             <button
               type="button"
               onClick={handleBackToResults}
-              className="mb-6 text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="mb-6 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
             >
               ← Back to shelters
             </button>
@@ -757,8 +771,10 @@ function StudentDashboard() {
                     )}
                   </div>
 
-                  <span className="h-fit rounded-full bg-green-50 px-4 py-2 text-sm font-semibold
-                   text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                  <span
+                    className="h-fit rounded-full bg-green-50 px-4 py-2 text-sm font-semibold
+                   text-green-700 dark:bg-green-950/40 dark:text-green-300"
+                  >
                     {
                       getShelterAvailability(
                         selectedShelter.id,
@@ -841,8 +857,10 @@ function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4
-               dark:bg-slate-950 dark:border-slate-700 sm:p-6">
+              <div
+                className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4
+               dark:bg-slate-950 dark:border-slate-700 sm:p-6"
+              >
                 {!requestSent ? (
                   <>
                     <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -887,17 +905,17 @@ function StudentDashboard() {
                         rows="4"
                         className="w-full resize-none rounded-lg border border-slate-300 bg-white px-4 
                         py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2
-                         focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                         focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
                       />
                     </div>
 
                     {verificationDocuments.length > 0 && (
-                      <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 dark:bg-green-950/40">
+                      <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 dark:bg-green-950/40 dark:border-green-900">
                         <p className="text-xs font-semibold text-green-700 dark:text-green-300">
                           ✓ Exam document attached
                         </p>
 
-                        <p className="mt-1 truncate text-xs text-green-600">
+                        <p className="mt-1 truncate text-xs text-green-600 dark:text-green-400">
                           {verificationDocuments
                             .map((document) => document.fileName)
                             .join(", ")}
@@ -906,7 +924,7 @@ function StudentDashboard() {
                     )}
 
                     {!verificationDocuments.length && (
-                      <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:bg-yellow-950/40">
+                      <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:bg-yellow-950/40 dark:border-yellow-900">
                         <p className="text-xs leading-5 text-yellow-700 dark:text-yellow-300">
                           You have not uploaded an exam document yet. You can
                           still send the request.
@@ -918,15 +936,17 @@ function StudentDashboard() {
                       type="button"
                       onClick={handleSendRequest}
                       className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold
-                       text-white transition hover:bg-blue-700"
+                       text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
                     >
                       Send Request
                     </button>
                   </>
                 ) : (
                   <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full
-                     bg-green-100 text-xl text-green-700 dark:bg-green-950/60 dark:text-green-300">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-full
+                     bg-green-100 text-xl text-green-700 dark:bg-green-950/60 dark:text-green-300"
+                    >
                       ✓
                     </div>
 
@@ -938,12 +958,12 @@ function StudentDashboard() {
                       Your request has been successfully sent to the homeowner.
                     </p>
 
-                    <div className="mt-5 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40">
+                    <div className="mt-5 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40 dark:border-green-900">
                       <p className="text-xs font-medium uppercase tracking-wide text-green-700 dark:text-green-300">
                         Request ID
                       </p>
 
-                      <p className="mt-1 font-bold text-green-900">
+                      <p className="mt-1 font-bold text-green-900 dark:text-green-100">
                         {requestDetails?.requestId}
                       </p>
                     </div>
@@ -970,7 +990,7 @@ function StudentDashboard() {
                         Status
                       </p>
 
-                      <p className="mt-1 font-semibold capitalize text-yellow-600">
+                      <p className="mt-1 font-semibold capitalize text-yellow-600 dark:text-yellow-400">
                         {requestDetails?.status}
                       </p>
                     </div>
@@ -1019,8 +1039,10 @@ function StudentDashboard() {
                       )}
                     </div>
 
-                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
-                     text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                    <span
+                      className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold
+                     text-green-700 dark:bg-green-950/40 dark:text-green-300"
+                    >
                       {
                         getShelterAvailability(shelter.id, shelter.capacity)
                           .remainingStudents
@@ -1058,7 +1080,8 @@ function StudentDashboard() {
                   <button
                     type="button"
                     onClick={() => handleViewShelter(shelter)}
-                    className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+                    className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition
+                     hover:bg-blue-700 dark:hover:bg-blue-500"
                   >
                     View Shelter
                   </button>
@@ -1082,8 +1105,10 @@ function StudentDashboard() {
           </div>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 
-            text-center sm:p-10 dark:bg-slate-900 dark:border-slate-600">
+            <div
+              className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 
+            text-center sm:p-10 dark:bg-slate-900 dark:border-slate-600"
+            >
               <div className="text-4xl">📋</div>
 
               <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -1174,19 +1199,21 @@ function StudentDashboard() {
                       Your Message
                     </p>
 
-                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600
-                     dark:bg-slate-950 dark:text-slate-300">
+                    <div
+                      className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600
+                     dark:bg-slate-950 dark:text-slate-300"
+                    >
                       {request.message || "No message provided."}
                     </div>
                   </div>
 
                   {request.verificationDocument && (
-                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40">
+                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40 dark:border-green-900">
                       <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                         ✓ Exam document submitted
                       </p>
 
-                      <p className="mt-1 text-xs text-green-600">
+                      <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                         {request.verificationDocument}
                       </p>
                     </div>
@@ -1207,7 +1234,7 @@ function StudentDashboard() {
                       type="button"
                       onClick={() => setChatRequest(request)}
                       className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm 
-                      font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300"
+                      font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900"
                     >
                       💬 Chat with Homeowner
                     </button>
@@ -1234,12 +1261,16 @@ function StudentDashboard() {
           aria-modal="true"
           aria-labelledby="delete-request-title"
         >
-          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl
-           dark:border-red-900 dark:bg-slate-900 sm:p-7">
+          <div
+            className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl
+           dark:border-red-900 dark:bg-slate-900 sm:p-7"
+          >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full
-                 bg-red-100 text-xl dark:bg-red-950/60">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+                 bg-red-100 text-xl dark:bg-red-950/60"
+                >
                   🗑️
                 </div>
 
@@ -1294,7 +1325,7 @@ function StudentDashboard() {
                 type="button"
                 onClick={confirmDeleteRequest}
                 className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold
-                 text-white transition hover:bg-red-700"
+                 text-white transition hover:bg-red-700 dark:hover:bg-red-500"
               >
                 Delete Request
               </button>
@@ -1312,11 +1343,13 @@ function StudentDashboard() {
             aria-modal="true"
             aria-labelledby="demo-homeowner-title"
           >
-            <div className="w-full max-w-lg rounded-3xl border border-blue-200
-             bg-white p-6 shadow-2xl dark:border-blue-800 dark:bg-slate-900 sm:p-8">
+            <div
+              className="w-full max-w-lg rounded-3xl border border-blue-200
+             bg-white p-6 shadow-2xl dark:border-blue-800 dark:bg-slate-900 sm:p-8"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-600">
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-400">
                     Request submitted
                   </p>
                   <h2
@@ -1363,8 +1396,10 @@ function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 
-              text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+              <div
+                className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 
+              text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300"
+              >
                 Close this box with the red × button when you have finished
                 reading the credentials. The page remains blocked until you
                 close it.
