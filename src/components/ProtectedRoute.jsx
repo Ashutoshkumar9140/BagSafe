@@ -4,9 +4,13 @@ import { useApp } from "../context/AppContext";
 function ProtectedRoute({ children, role }) {
   const { user } = useApp();
 
+  // ........................ check if the user is logged in ........................
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // ........................................ check the user's role .......................
 
   if (role && user.role !== role) {
     if (user.role === "student") {

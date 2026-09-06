@@ -15,6 +15,8 @@ function App() {
 
       <Route path="/signup" element={<Signup />} />
 
+      {/* ................................. protect role-based dashboards ................................. */}
+
       <Route
         path="/student/dashboard"
         element={

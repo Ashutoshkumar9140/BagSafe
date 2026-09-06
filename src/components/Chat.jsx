@@ -21,14 +21,9 @@ function Chat({ request, onClose }) {
   useEffect(() => {
     loadMessages();
 
-    const handleChatUpdate = () => {
-      loadMessages();
-    };
-
+    const handleChatUpdate = () => loadMessages();
     const handleStorageUpdate = (event) => {
-      if (event.key === chatKey) {
-        loadMessages();
-      }
+      if (event.key === chatKey) loadMessages();
     };
 
     window.addEventListener("bagsafeChatUpdated", handleChatUpdate);
@@ -70,12 +65,10 @@ function Chat({ request, onClose }) {
     };
 
     const updatedMessages = [...messages, newMessage];
-
     localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     setMessages(updatedMessages);
     setMessage("");
     setError("");
-
     window.dispatchEvent(new Event("bagsafeChatUpdated"));
   };
 
@@ -89,13 +82,12 @@ function Chat({ request, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4">
       <div className="flex h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
-        <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5 dark:bg-slate-900 dark:border-slate-700">
+        <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h3 className="truncate text-lg font-bold text-slate-900 sm:text-xl dark:text-slate-100">
+              <h3 className="truncate text-lg font-bold text-slate-900 dark:text-slate-100 sm:text-xl">
                 Chat with {otherPerson}
               </h3>
-
               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <span>Request ID: {request.requestId}</span>
                 <span className="hidden sm:inline">•</span>
@@ -107,14 +99,14 @@ function Chat({ request, onClose }) {
               type="button"
               onClick={onClose}
               aria-label="Close chat"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-3xl font-semibold leading-none text-red-500 transition hover:bg-red-100 hover:text-red-700 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/70"
             >
               ×
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-slate-50 p-3 sm:p-6 dark:bg-slate-950">
+        <div className="flex-1 overflow-y-auto bg-slate-50 p-3 dark:bg-slate-950 sm:p-6">
           {messages.length === 0 ? (
             <div className="flex h-full items-center justify-center px-4 text-center">
               <div>
@@ -125,8 +117,7 @@ function Chat({ request, onClose }) {
                 </h4>
 
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Ask about arrival time, shelter details, location,
-                  availability or any other booking questions.
+                  Ask about arrival time, shelter details, location, availability or any other booking questions.
                 </p>
               </div>
             </div>
@@ -144,11 +135,11 @@ function Chat({ request, onClose }) {
                       className={`max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[78%] ${
                         isMine
                           ? "rounded-br-md bg-blue-600 text-white"
-                          : "rounded-bl-md bg-white text-slate-800 shadow-sm ring-1 ring-slate-200"
+                          : "rounded-bl-md bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700"
                       }`}
                     >
                       {!isMine && (
-                        <p className="mb-1 text-xs font-semibold text-blue-600">
+                        <p className="mb-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
                           {item.senderName || otherPerson}
                         </p>
                       )}
@@ -174,7 +165,7 @@ function Chat({ request, onClose }) {
 
         <form
           onSubmit={sendMessage}
-          className="border-t border-slate-200 bg-white p-3 sm:p-4 dark:bg-slate-900 dark:border-slate-700"
+          className="border-t border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900 sm:p-4"
         >
           {error && (
             <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -192,7 +183,7 @@ function Chat({ request, onClose }) {
                 if (error) setError("");
               }}
               placeholder="Type your message..."
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:px-4 dark:border-slate-600 dark:focus:ring-blue-900/50"
+              className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-950 dark:focus:ring-blue-900/50"
             />
 
             <button

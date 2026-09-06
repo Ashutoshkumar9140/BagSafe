@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
-function HomeownerProfile({ onClose }) {
+function StudentProfile({ onClose }) {
   const {
     user,
-    logout,
     updateProfile,
     deleteAccount,
   } = useApp();
@@ -18,6 +17,7 @@ function HomeownerProfile({ onClose }) {
   const [message, setMessage] = useState("");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
+  const deleteBoxRef = useRef(null);
 
   const [name, setName] = useState(user?.name || "");
   const [age, setAge] = useState(user?.age || "");
@@ -41,14 +41,14 @@ function HomeownerProfile({ onClose }) {
     setPermanentAddress(user?.permanentAddress || "");
   }, [user]);
 
-  const ownerShelters =
+  const verificationDocument =
     JSON.parse(
-      localStorage.getItem("bagsafeOwnerShelters")
-    ) || [];
-
-  const myShelters = ownerShelters.filter(
-    (shelter) => shelter.homeownerId === user?.id
-  );
+      localStorage.getItem(
+        "bagsafeVerificationDocuments"
+      )
+    )?.find(
+      (document) => document.studentId === user?.id
+    ) || null;
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -146,17 +146,39 @@ function HomeownerProfile({ onClose }) {
     setEditing(false);
   };
 
-  const handleLogout = () => {
-    const shouldLogout = window.confirm(
-      "Are you sure you want to logout?"
-    );
+  const closeDeleteBox = () => {
+    setShowDeleteBox(false);
+    setDeletePassword("");
+    setDeleteMessage("");
+  };
 
-    if (!shouldLogout) {
+  useEffect(() => {
+    if (!showDeleteBox) {
       return;
     }
 
-    logout();
-  };
+    if (deleteBoxRef.current) {
+      deleteBoxRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+
+    const handleOutsideClick = (event) => {
+      if (
+        !event.target.closest("[data-delete-box]") &&
+        !event.target.closest("[data-delete-trigger]")
+      ) {
+        closeDeleteBox();
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showDeleteBox]);
 
   const handleDeleteAccount = (e) => {
     e.preventDefault();
@@ -178,7 +200,7 @@ function HomeownerProfile({ onClose }) {
     setDeletePassword("");
     setShowDeleteBox(false);
 
-    navigate("/signup", { replace: true });
+    navigate("/login?role=student", { replace: true });
   };
 
   return (
@@ -187,17 +209,17 @@ function HomeownerProfile({ onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-2xl dark:bg-orange-950/60">
-              🏠
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl">
+              🎓
             </div>
 
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                Homeowner Profile
+                Student Profile
               </h2>
 
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Manage your homeowner account information.
+                Manage your student account information.
               </p>
             </div>
           </div>
@@ -205,15 +227,17 @@ function HomeownerProfile({ onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-2 text-2xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-3xl font-semibold leading-none text-red-500 dark:bg-red-950/40 dark:text-red-400 transition hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/50 dark:hover:text-red-300"
           >
             ×
           </button>
         </div>
 
-        <div className="p-6">
+        <div
+          className="p-6"
+        >
           {message && (
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
               {message}
             </div>
           )}
@@ -223,18 +247,18 @@ function HomeownerProfile({ onClose }) {
               {/* Personal Information */}
               <section>
                 <div className="mb-5">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-lg font-bold text-slate-900">
                     Personal Information
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Information provided during homeowner registration.
+                    Information provided during student registration.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Full Name
                     </p>
 
@@ -243,8 +267,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Age
                     </p>
 
@@ -253,8 +277,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Sex
                     </p>
 
@@ -263,8 +287,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Nationality
                     </p>
 
@@ -273,8 +297,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Mobile Number
                     </p>
 
@@ -283,8 +307,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Email
                     </p>
 
@@ -293,8 +317,8 @@ function HomeownerProfile({ onClose }) {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2 dark:bg-slate-950">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800 sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                       Permanent Address
                     </p>
 
@@ -306,91 +330,59 @@ function HomeownerProfile({ onClose }) {
                 </div>
               </section>
 
-              {/* Shelter Summary */}
+              {/* Verification */}
               <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
                 <div className="mb-5">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    Shelter Summary
+                  <h3 className="text-lg font-bold text-slate-900">
+                    Exam Verification
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Overview of the shelters you have added to BagSafe.
+                    Your exam document helps homeowners review your request.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl bg-blue-50 p-5 dark:bg-blue-950/40">
-                    <p className="text-sm text-blue-600">
-                      Total Shelters
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-blue-800">
-                      {myShelters.length}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-green-50 p-5 dark:bg-green-950/40">
-                    <p className="text-sm text-green-600">
-                      Total Capacity
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold text-green-800">
-                      {myShelters.reduce(
-                        (total, shelter) =>
-                          total +
-                          Number(shelter.capacity || 0),
-                        0
-                      )}
-                    </p>
-
-                    <p className="mt-1 text-xs text-green-600">
-                      Students
-                    </p>
-                  </div>
-                </div>
-
-                {myShelters.length > 0 && (
-                  <div className="mt-5 space-y-3">
-                    {myShelters.map((shelter) => (
-                      <div
-                        key={shelter.id}
-                        className="flex flex-col justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center dark:bg-slate-950 dark:border-slate-700"
-                      >
-                        <div>
-                          <p className="font-semibold text-slate-800 dark:text-slate-200">
-                            {shelter.name}
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            {shelter.area}, {shelter.city}
-                          </p>
-                        </div>
-
-                        <div className="text-left sm:text-right">
-                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                            {shelter.capacity} students
-                          </p>
-
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            {shelter.availability}
-                          </p>
-                        </div>
+                {verificationDocument ? (
+                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950/30 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-100 text-xl dark:bg-green-900/50">
+                        📄
                       </div>
-                    ))}
+
+                      <div>
+                        <p className="font-semibold text-green-800 dark:text-green-200">
+                          {verificationDocument.fileName}
+                        </p>
+
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                          Submitted{" "}
+                          {new Date(
+                            verificationDocument.uploadedAt
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                      Submitted
+                    </span>
                   </div>
-                )}
+                ) : (
+                  <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 dark:border-yellow-900 dark:bg-yellow-950/30">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">⚠️</span>
 
-                {myShelters.length === 0 && (
-                  <div className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center dark:border-slate-600">
-                    <div className="text-3xl">🏠</div>
+                      <div>
+                        <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+                          Exam document not submitted
+                        </p>
 
-                    <p className="mt-3 font-semibold text-slate-700 dark:text-slate-300">
-                      No shelters added yet
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                      Add a shelter from your homeowner dashboard.
-                    </p>
+                        <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                          Upload your admit card or exam-related document from
+                          your Student Dashboard.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </section>
@@ -403,7 +395,7 @@ function HomeownerProfile({ onClose }) {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                    <h3 className="text-lg font-bold text-slate-900">
                       Account Settings
                     </h3>
 
@@ -427,20 +419,13 @@ function HomeownerProfile({ onClose }) {
 
                   <button
                     type="button"
-                    onClick={handleLogout}
-                    className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
-                  >
-                    Logout
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => {
                       setShowDeleteBox(true);
                       setDeleteMessage("");
                       setDeletePassword("");
                     }}
-                    className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400"
+                    data-delete-trigger
+                    className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 dark:border-red-900 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-950/40"
                   >
                     Delete Account
                   </button>
@@ -449,19 +434,24 @@ function HomeownerProfile({ onClose }) {
 
               {/* Delete Account */}
               {showDeleteBox && (
-                <section className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 dark:bg-red-950/40">
-                  <h3 className="font-bold text-red-800">
+                <section
+                  ref={deleteBoxRef}
+                  data-delete-box
+                  onClick={(event) => event.stopPropagation()}
+                  className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950/30"
+                >
+                  <h3 className="font-bold text-red-800 dark:text-red-200">
                     Delete your account?
                   </h3>
 
                   <p className="mt-2 text-sm leading-6 text-red-700 dark:text-red-300">
-                    This will permanently remove your homeowner account,
-                    shelters, requests, and other account data stored by this
-                    demo application.
+                    This will permanently remove your student account,
+                    requests, verification information, and other account
+                    data stored by this demo application.
                   </p>
 
                   {deleteMessage && (
-                    <div className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm text-red-700 dark:bg-slate-900 dark:text-red-300">
+                    <div className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-slate-900 dark:text-red-300">
                       {deleteMessage}
                     </div>
                   )}
@@ -470,7 +460,7 @@ function HomeownerProfile({ onClose }) {
                     onSubmit={handleDeleteAccount}
                     className="mt-5"
                   >
-                    <label className="mb-2 block text-sm font-medium text-red-800">
+                    <label className="mb-2 block text-sm font-medium text-red-800 dark:text-red-200">
                       Enter your current password
                     </label>
 
@@ -481,7 +471,7 @@ function HomeownerProfile({ onClose }) {
                         setDeletePassword(e.target.value)
                       }
                       placeholder="Enter password"
-                      className="w-full rounded-lg border border-red-200 bg-white px-4 py-3 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900"
+                      className="w-full rounded-lg border border-red-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 dark:border-red-900 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     />
 
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -494,12 +484,8 @@ function HomeownerProfile({ onClose }) {
 
                       <button
                         type="button"
-                        onClick={() => {
-                          setShowDeleteBox(false);
-                          setDeletePassword("");
-                          setDeleteMessage("");
-                        }}
-                        className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
+                        onClick={closeDeleteBox}
+                        className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         Cancel
                       </button>
@@ -512,8 +498,8 @@ function HomeownerProfile({ onClose }) {
             /* Edit Profile */
             <form onSubmit={handleSave}>
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  Edit Homeowner Profile
+                <h3 className="text-xl font-bold text-slate-900">
+                  Edit Student Profile
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -531,7 +517,7 @@ function HomeownerProfile({ onClose }) {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -546,7 +532,7 @@ function HomeownerProfile({ onClose }) {
                     max="100"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -558,7 +544,7 @@ function HomeownerProfile({ onClose }) {
                   <select
                     value={sex}
                     onChange={(e) => setSex(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   >
                     <option value="">Select sex</option>
                     <option value="Male">Male</option>
@@ -578,7 +564,7 @@ function HomeownerProfile({ onClose }) {
                     onChange={(e) =>
                       setNationality(e.target.value)
                     }
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -592,7 +578,7 @@ function HomeownerProfile({ onClose }) {
                     maxLength="10"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -605,7 +591,7 @@ function HomeownerProfile({ onClose }) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -621,7 +607,7 @@ function HomeownerProfile({ onClose }) {
                     }
                     placeholder="Enter your permanent address"
                     rows="4"
-                    className="w-full resize-none rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full resize-none rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition text-slate-900 dark:bg-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
                   />
                 </div>
               </div>
@@ -637,7 +623,7 @@ function HomeownerProfile({ onClose }) {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
+                  className="rounded-lg border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 text-slate-700 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
@@ -650,4 +636,4 @@ function HomeownerProfile({ onClose }) {
   );
 }
 
-export default HomeownerProfile;
+export default StudentProfile;

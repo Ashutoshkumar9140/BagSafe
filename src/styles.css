@@ -15,14 +15,14 @@ body,
 body {
   margin: 0;
   min-width: 320px;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background: #f4f7fb;
+  color: #172033;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html.dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background: #08111f;
+  color: #e5edf8;
 }
 
 html.dark {
@@ -33,11 +33,55 @@ html:not(.dark) {
   color-scheme: light;
 }
 
-input,
+input:not([type="file"]),
 textarea,
-select,
-button {
-  font: inherit;
+select {
+  color: #172033 !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1;
+}
+
+input:not([type="file"])::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+input:not([type="file"]):focus,
+textarea:focus,
+select:focus {
+  color: #172033 !important;
+  background-color: #ffffff !important;
+}
+
+html.dark input:not([type="file"]),
+html.dark textarea,
+html.dark select {
+  color: #e5edf8 !important;
+  background-color: #111c2e !important;
+  border-color: #475569;
+}
+
+html.dark input:not([type="file"])::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dark input:not([type="file"]):focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  color: #e5edf8 !important;
+  background-color: #111c2e !important;
+}
+
+select option {
+  color: #172033;
+  background: #ffffff;
+}
+
+html.dark select option {
+  color: #e5edf8;
+  background: #111c2e;
 }
 
 button {
@@ -45,6 +89,166 @@ button {
 }
 
 ::selection {
-  background-color: #2563eb;
-  color: white;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* ................................. keep scrolling without visible scrollbar ................................ */
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.bagsafe-home-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(120deg, #2563eb, #06b6d4, #8b5cf6, #2563eb) border-box;
+  background-size: 100% 100%, 300% 300%;
+  animation: bagsafe-border-run 5s linear infinite;
+  color: #1d4ed8;
+  box-shadow: 0 8px 24px rgb(37 99 235 / 0.12);
+}
+
+.bagsafe-home-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgb(37 99 235 / 0.2);
+}
+
+html.dark .bagsafe-home-button {
+  background: linear-gradient(#111c2e, #111c2e) padding-box,
+    linear-gradient(120deg, #60a5fa, #22d3ee, #a78bfa, #60a5fa) border-box;
+  background-size: 100% 100%, 300% 300%;
+  color: #bfdbfe;
+}
+
+@keyframes bagsafe-border-run {
+  0% {
+    background-position: 0 0, 0% 50%;
+  }
+  50% {
+    background-position: 0 0, 100% 50%;
+  }
+  100% {
+    background-position: 0 0, 0% 50%;
+  }
+}
+
+.bagsafe-section {
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 0.05);
+}
+
+.bagsafe-blue-section {
+  background: #eef6ff;
+  border-color: #bfdbfe;
+}
+
+.bagsafe-green-section {
+  background: #effcf6;
+  border-color: #bbf7d0;
+}
+
+.bagsafe-purple-section {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.bagsafe-amber-section {
+  background: #fff9ed;
+  border-color: #fde68a;
+}
+
+.bagsafe-rose-section {
+  background: #fff3f5;
+  border-color: #fecdd3;
+}
+
+html.dark .bagsafe-section {
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
+}
+
+html.dark .bagsafe-blue-section {
+  background: #0d1d35;
+  border-color: #1e40af;
+}
+
+html.dark .bagsafe-green-section {
+  background: #09251b;
+  border-color: #166534;
+}
+
+html.dark .bagsafe-purple-section {
+  background: #1a1433;
+  border-color: #5b21b6;
+}
+
+html.dark .bagsafe-amber-section {
+  background: #2a2110;
+  border-color: #92400e;
+}
+
+html.dark .bagsafe-rose-section {
+  background: #2a131a;
+  border-color: #9f1239;
+}
+
+.bagsafe-input-panel {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #172033;
+}
+
+html.dark .bagsafe-input-panel {
+  border-color: #475569;
+  background: #111c2e;
+  color: #e5edf8;
+}
+
+/* ................................. stronger readable form controls ................................. */
+.bagsafe-auth-input {
+  color: #172033 !important;
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+.bagsafe-auth-input::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+html.dark .bagsafe-auth-input {
+  color: #f1f5f9 !important;
+  background: #172235 !important;
+  border-color: #475569 !important;
+}
+
+html.dark .bagsafe-auth-input::placeholder {
+  color: #a8b5c7 !important;
+}
+
+/* ................................. balanced section colors for better contrast ................................ */
+.bagsafe-section,
+.bagsafe-blue-section,
+.bagsafe-green-section,
+.bagsafe-purple-section,
+.bagsafe-amber-section,
+.bagsafe-rose-section {
+  color: #172033;
+}
+
+html.dark .bagsafe-section,
+html.dark .bagsafe-blue-section,
+html.dark .bagsafe-green-section,
+html.dark .bagsafe-purple-section,
+html.dark .bagsafe-amber-section,
+html.dark .bagsafe-rose-section {
+  color: #e5edf8;
 }

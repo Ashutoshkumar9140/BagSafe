@@ -1,21 +1,25 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import HomeownerProfile from "../components/HomeownerProfile";
 import Wallet from "../components/Wallet";
 import Chat from "../components/Chat";
 
 function HomeownerDashboard() {
+  const navigate = useNavigate();
   const {
     user,
     logout,
     updateRequestStatus,
     addShelter,
+    updateShelter,
     deleteShelter,
   } = useApp();
 
   const [requests, setRequests] = useState([]);
   const [shelters, setShelters] = useState([]);
   const [showShelterForm, setShowShelterForm] = useState(false);
+  const [editingShelterId, setEditingShelterId] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [chatRequest, setChatRequest] = useState(null);
 
@@ -29,6 +33,7 @@ function HomeownerDashboard() {
   const [amenities, setAmenities] = useState([]);
 
   const [shelterMessage, setShelterMessage] = useState("");
+  const [deleteShelterId, setDeleteShelterId] = useState(null);
 
   const availableAmenities = [
     "Food",
@@ -53,6 +58,14 @@ function HomeownerDashboard() {
       if (event.key === "bagsafeRequests") {
         loadRequests();
       }
+
+      if (event.key === "bagsafeOwnerShelters") {
+        loadShelters();
+      }
+    };
+
+    const handleShelterUpdate = () => {
+      loadShelters();
     };
 
     window.addEventListener(
@@ -65,6 +78,11 @@ function HomeownerDashboard() {
       handleStorageUpdate
     );
 
+    window.addEventListener(
+      "bagsafeShelterUpdated",
+      handleShelterUpdate
+    );
+
     return () => {
       window.removeEventListener(
         "bagsafeRequestUpdated",
@@ -74,6 +92,11 @@ function HomeownerDashboard() {
       window.removeEventListener(
         "storage",
         handleStorageUpdate
+      );
+
+      window.removeEventListener(
+        "bagsafeShelterUpdated",
+        handleShelterUpdate
       );
     };
   }, [user]);
@@ -123,6 +146,19 @@ function HomeownerDashboard() {
     }
   };
 
+  const resetShelterForm = () => {
+    setShelterName("");
+    setAddress("");
+    setCity("");
+    setArea("");
+    setCapacity("");
+    setPrice("");
+    setAvailability("");
+    setAmenities([]);
+    setEditingShelterId(null);
+    setShowShelterForm(false);
+  };
+
   const handleAddShelter = (e) => {
     e.preventDefault();
 
@@ -137,27 +173,21 @@ function HomeownerDashboard() {
       !price ||
       !availability
     ) {
-      setShelterMessage(
-        "Please fill in all required fields."
-      );
+      setShelterMessage("Please fill in all required fields.");
       return;
     }
 
     if (Number(capacity) < 1) {
-      setShelterMessage(
-        "Capacity must be at least 1 student."
-      );
+      setShelterMessage("Capacity must be at least 1 student.");
       return;
     }
 
     if (Number(price) <= 0) {
-      setShelterMessage(
-        "Price must be greater than ₹0 per student."
-      );
+      setShelterMessage("Price must be greater than ₹0 per student.");
       return;
     }
 
-    const newShelter = addShelter({
+    const shelterData = {
       homeownerId: user.id,
       homeownerName: user.name,
       homeownerEmail: user.email,
@@ -169,42 +199,64 @@ function HomeownerDashboard() {
       price: Number(price),
       availability,
       amenities,
-    });
+    };
 
-    setShelters([...shelters, newShelter]);
+    if (editingShelterId) {
+      const updatedShelters = updateShelter(
+        editingShelterId,
+        shelterData
+      );
 
-    setShelterName("");
-    setAddress("");
-    setCity("");
-    setArea("");
-    setCapacity("");
-    setPrice("");
-    setAvailability("");
-    setAmenities([]);
-    setShowShelterForm(false);
+      setShelters(
+        updatedShelters.filter(
+          (shelter) => shelter.homeownerId === user?.id
+        )
+      );
+    } else {
+      const newShelter = addShelter(shelterData);
+      setShelters([...shelters, newShelter]);
+    }
+
+    resetShelterForm();
   };
 
-  const handleDeleteShelter = (shelterId) => {
-    const shouldDelete = window.confirm(
-      "Are you sure you want to delete this shelter?"
-    );
+  const handleEditShelter = (shelter) => {
+    setEditingShelterId(shelter.id);
+    setShelterName(shelter.name || "");
+    setAddress(shelter.address || "");
+    setCity(shelter.city || "");
+    setArea(shelter.area || "");
+    setCapacity(String(shelter.capacity || ""));
+    setPrice(String(shelter.price || ""));
+    setAvailability(shelter.availability || "");
+    setAmenities(Array.isArray(shelter.amenities) ? shelter.amenities : []);
+    setShelterMessage("");
+    setShowShelterForm(true);
 
-    if (!shouldDelete) {
+    window.setTimeout(() => {
+      document
+        .getElementById("shelter-form")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  };
+
+  const handleDeleteShelter = () => {
+    if (!deleteShelterId) {
       return;
     }
 
-    const updatedShelters = deleteShelter(shelterId);
-
+    const updatedShelters = deleteShelter(deleteShelterId);
     const homeownerShelters = updatedShelters.filter(
       (shelter) => shelter.homeownerId === user?.id
     );
 
     setShelters(homeownerShelters);
+    setDeleteShelterId(null);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700">
+      <header className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-2xl font-bold text-blue-600">
@@ -216,13 +268,24 @@ function HomeownerDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                navigate("/login?role=homeowner", { replace: true });
+              }}
+              className="bagsafe-home-button rounded-xl px-3 py-2 text-sm font-bold sm:px-4"
+            >
+              🏠 Home
+            </button>
+
             <button
               type="button"
               onClick={() => setShowProfile(true)}
-              className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-slate-100"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-lg dark:bg-orange-950/60">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-lg">
                 🏠
               </div>
 
@@ -239,8 +302,11 @@ function HomeownerDashboard() {
 
             <button
               type="button"
-              onClick={logout}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700"
+              onClick={() => {
+                logout();
+                navigate("/login?role=homeowner", { replace: true });
+              }}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               Logout
             </button>
@@ -264,11 +330,11 @@ function HomeownerDashboard() {
           </p>
         </section>
 
-        <section className="mb-8">
+        <section className="bagsafe-section bagsafe-blue-section mb-8 rounded-3xl p-3 sm:p-4">
           <Wallet role="homeowner" />
         </section>
 
-        <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <section className="bagsafe-section bagsafe-purple-section grid grid-cols-1 gap-5 rounded-3xl p-4 sm:grid-cols-3 sm:p-5">
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               My Shelters
@@ -304,7 +370,7 @@ function HomeownerDashboard() {
           </div>
         </section>
 
-        <section className="mt-8">
+        <section className="bagsafe-section bagsafe-amber-section mt-8 rounded-3xl p-4 sm:p-6">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -332,15 +398,16 @@ function HomeownerDashboard() {
 
           {showShelterForm && (
             <form
+              id="shelter-form"
               onSubmit={handleAddShelter}
               className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
             >
               <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                Add a new shelter
+                {editingShelterId ? "Edit shelter" : "Add a new shelter"}
               </h4>
 
               {shelterMessage && (
-                <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {shelterMessage}
                 </div>
               )}
@@ -358,7 +425,7 @@ function HomeownerDashboard() {
                       setShelterName(e.target.value)
                     }
                     placeholder="e.g. Sunrise Room"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -374,7 +441,7 @@ function HomeownerDashboard() {
                       setAddress(e.target.value)
                     }
                     placeholder="Enter full address"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -390,7 +457,7 @@ function HomeownerDashboard() {
                       setCity(e.target.value)
                     }
                     placeholder="e.g. Noida"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -406,7 +473,7 @@ function HomeownerDashboard() {
                       setArea(e.target.value)
                     }
                     placeholder="e.g. Sector 62"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -423,7 +490,7 @@ function HomeownerDashboard() {
                       setCapacity(e.target.value)
                     }
                     placeholder="Number of students"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-blue-900/40"
                   />
                 </div>
 
@@ -432,24 +499,17 @@ function HomeownerDashboard() {
                     Price per Student
                   </label>
 
-                  <div className="flex items-center rounded-lg border border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 dark:border-slate-600">
-                    <span className="pl-4 text-slate-500 dark:text-slate-400">₹</span>
-
+                  <div className="flex items-center rounded-lg border border-slate-300 bg-white px-3 dark:border-slate-600 dark:bg-slate-900">
+                    <span className="text-slate-600 dark:text-slate-300">₹</span>
                     <input
                       type="number"
                       min="1"
                       value={price}
-                      onChange={(e) =>
-                        setPrice(e.target.value)
-                      }
+                      onChange={(e) => setPrice(e.target.value)}
                       placeholder="e.g. 350"
-                      className="w-full rounded-lg px-2 py-3 outline-none"
+                      className="w-full rounded-lg border-0 bg-transparent px-2 py-3 text-slate-900 placeholder-slate-400 outline-none dark:text-slate-100 dark:placeholder-slate-500"
                     />
                   </div>
-
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Amount charged per student.
-                  </p>
                 </div>
 
                 <div>
@@ -462,7 +522,7 @@ function HomeownerDashboard() {
                     onChange={(e) =>
                       setAvailability(e.target.value)
                     }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-blue-900/40"
                   >
                     <option value="">
                       Select availability
@@ -496,7 +556,7 @@ function HomeownerDashboard() {
                   {availableAmenities.map((amenity) => (
                     <label
                       key={amenity}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                       <input
                         type="checkbox"
@@ -515,16 +575,16 @@ function HomeownerDashboard() {
 
               <button
                 type="submit"
-                className="mt-6 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition hover:bg-green-700"
+                className="mt-6 rounded-xl bg-green-600 px-6 py-3 font-semibold text-white transition hover:bg-green-700"
               >
-                Add Shelter
+                {editingShelterId ? "Save Shelter Changes" : "Add Shelter"}
               </button>
             </form>
           )}
 
           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
             {shelters.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2 dark:bg-slate-900 dark:border-slate-600">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2 dark:border-slate-600 dark:bg-slate-900">
                 <div className="text-4xl">🏠</div>
 
                 <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -556,15 +616,22 @@ function HomeownerDashboard() {
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleDeleteShelter(shelter.id)
-                      }
-                      className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditShelter(shelter)}
+                        className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 transition hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteShelterId(shelter.id)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
@@ -577,10 +644,6 @@ function HomeownerDashboard() {
                     </p>
 
                     <p>
-                      💰 Price: ₹{shelter.price} per student
-                    </p>
-
-                    <p>
                       🕐 Availability: {shelter.availability}
                     </p>
                   </div>
@@ -590,7 +653,7 @@ function HomeownerDashboard() {
                       {shelter.amenities.map((amenity) => (
                         <span
                           key={amenity}
-                          className="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                          className="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
                         >
                           {amenity}
                         </span>
@@ -603,7 +666,7 @@ function HomeownerDashboard() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section className="bagsafe-section bagsafe-rose-section mt-12 rounded-3xl p-4 sm:p-6">
           <div className="mb-5">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Student Requests
@@ -615,7 +678,7 @@ function HomeownerDashboard() {
           </div>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:bg-slate-900 dark:border-slate-600">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-600 dark:bg-slate-900">
               <div className="text-4xl">📩</div>
 
               <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -628,7 +691,7 @@ function HomeownerDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="max-h-[620px] space-y-5 overflow-y-auto pr-1">
               {requests.map((request) => (
                 <div
                   key={request.requestId}
@@ -647,7 +710,7 @@ function HomeownerDashboard() {
                               ? "bg-green-50 text-green-700"
                               : request.status === "rejected"
                               ? "bg-red-50 text-red-700"
-                              : "bg-yellow-50 text-yellow-700"
+                              : "bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300"
                           }`}
                         >
                           {request.status}
@@ -707,19 +770,19 @@ function HomeownerDashboard() {
                       Student Message
                     </p>
 
-                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                    <div className="mt-2 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700 dark:bg-slate-950 dark:text-slate-200">
                       {request.message ||
                         "No message provided."}
                     </div>
                   </div>
 
                   {request.verificationDocument && (
-                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:bg-green-950/40">
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+                      <p className="text-sm font-semibold text-green-700">
                         ✓ Exam document submitted
                       </p>
 
-                      <p className="mt-1 text-xs text-green-600">
+                      <p className="mt-1 text-xs text-green-700 dark:text-green-300">
                         {request.verificationDocument}
                       </p>
                     </div>
@@ -731,7 +794,7 @@ function HomeownerDashboard() {
                       onClick={() =>
                         setChatRequest(request)
                       }
-                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300"
+                      className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                     >
                       💬 Chat with Student
                     </button>
@@ -746,7 +809,7 @@ function HomeownerDashboard() {
                               "rejected"
                             )
                           }
-                          className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400"
+                          className="rounded-lg border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
                         >
                           Reject Request
                         </button>
@@ -772,6 +835,25 @@ function HomeownerDashboard() {
           )}
         </section>
       </main>
+
+      {deleteShelterId && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl dark:border-red-900 dark:bg-slate-900">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-600">Delete shelter</p>
+                <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-slate-100">Are you sure?</h3>
+              </div>
+              <button type="button" onClick={() => setDeleteShelterId(null)} className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-2xl font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">×</button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">This shelter will be removed from your homeowner dashboard and will no longer appear in future searches.</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={handleDeleteShelter} className="flex-1 rounded-xl bg-red-600 px-4 py-3 font-bold text-white hover:bg-red-700">Delete Shelter</button>
+              <button type="button" onClick={() => setDeleteShelterId(null)} className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showProfile && (
         <HomeownerProfile

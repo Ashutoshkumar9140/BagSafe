@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import shelterData from "../data/shelterData";
 import StudentProfile from "../components/StudentProfile";
@@ -6,13 +7,15 @@ import Wallet from "../components/Wallet";
 import Chat from "../components/Chat";
 
 function StudentDashboard() {
+  const navigate = useNavigate();
   const {
     user,
     logout,
     createRequest,
-    saveVerificationDocument,
-    getVerificationDocument,
-    deleteVerificationDocument,
+    deleteRequest,
+    saveVerificationDocuments,
+    getVerificationDocuments,
+    deleteVerificationDocuments,
   } = useApp();
 
   const [city, setCity] = useState("");
@@ -31,11 +34,15 @@ function StudentDashboard() {
 
   const [requests, setRequests] = useState([]);
 
-  const [verificationDocument, setVerificationDocument] = useState(null);
+  const [verificationDocuments, setVerificationDocuments] = useState([]);
   const [documentMessage, setDocumentMessage] = useState("");
 
   const [showProfile, setShowProfile] = useState(false);
   const [chatRequest, setChatRequest] = useState(null);
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
+  const [showDocumentConfirm, setShowDocumentConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTargetRequest, setDeleteTargetRequest] = useState(null);
 
   const supportedCities = [
     "Delhi",
@@ -50,14 +57,13 @@ function StudentDashboard() {
     "Ghaziabad",
   ];
 
+  // ................................. keep requests and verification data in sync .................................
+
   useEffect(() => {
     loadRequests();
 
-    const savedDocument = getVerificationDocument();
-
-    if (savedDocument) {
-      setVerificationDocument(savedDocument);
-    }
+    const savedDocuments = getVerificationDocuments();
+    setVerificationDocuments(savedDocuments);
 
     const handleRequestUpdate = () => {
       loadRequests();
@@ -92,6 +98,29 @@ function StudentDashboard() {
     };
   }, [user]);
 
+  // ................................. calculate remaining shelter capacity .................................
+
+  const getShelterAvailability = (shelterId, capacity) => {
+    const savedRequests =
+      JSON.parse(localStorage.getItem("bagsafeRequests")) || [];
+
+    const reservedStudents = savedRequests
+      .filter(
+        (request) =>
+          request.shelterId === shelterId &&
+          request.status !== "rejected"
+      )
+      .reduce((total, request) => total + Number(request.students || 0), 0);
+
+    return {
+      reservedStudents,
+      remainingStudents: Math.max(
+        Number(capacity || 0) - reservedStudents,
+        0
+      ),
+    };
+  };
+
   const loadRequests = () => {
     const savedRequests =
       JSON.parse(localStorage.getItem("bagsafeRequests")) || [];
@@ -101,6 +130,43 @@ function StudentDashboard() {
     );
 
     setRequests(studentRequests);
+  };
+
+  // ......................... search available shelters for the selected destination .........................
+
+  // ................................. open the custom delete confirmation modal .................................
+
+  const handleDeleteRequest = (request) => {
+    if (!request?.requestId) {
+      return;
+    }
+
+    setDeleteTargetRequest(request);
+    setShowDeleteConfirm(true);
+  };
+
+  // .................................... delete the selected request after confirmation ....................................
+
+  const confirmDeleteRequest = () => {
+    if (!deleteTargetRequest?.requestId) {
+      return;
+    }
+
+    const result = deleteRequest(deleteTargetRequest.requestId);
+
+    if (!result?.success) {
+      setMessage(result?.message || "Unable to delete this request.");
+      setShowDeleteConfirm(false);
+      setDeleteTargetRequest(null);
+      return;
+    }
+
+    setMessage("Request deleted successfully.");
+    setRequestSent(false);
+    setRequestDetails(null);
+    setRequestHomeowner(null);
+    setShowDeleteConfirm(false);
+    setDeleteTargetRequest(null);
   };
 
   const handleSearch = (e) => {
@@ -193,6 +259,8 @@ function StudentDashboard() {
     setRequestMessage("");
   };
 
+  // ...................................... send the shelter request ......................................
+
   const handleSendRequest = () => {
     if (!selectedShelter) {
       return;
@@ -215,9 +283,18 @@ function StudentDashboard() {
       students: Number(students),
       totalCost,
       message: requestMessage.trim(),
-      verificationDocument: verificationDocument
-        ? verificationDocument.fileName
+      verificationDocuments: verificationDocuments.map((document) => ({
+        studentNumber: document.studentNumber,
+        fileName: document.fileName,
+      })),
+      verificationDocument: verificationDocuments.length > 0
+        ? verificationDocuments.map((document) => document.fileName).join(", ")
         : null,
+      homeownerEmail: selectedShelter.homeownerEmail,
+      shelterAddress: selectedShelter.address,
+      shelterPrice: selectedShelter.price,
+      shelterAvailability: selectedShelter.availability,
+      shelterAmenities: selectedShelter.amenities,
     });
 
     if (newRequest?.success === false) {
@@ -225,17 +302,65 @@ function StudentDashboard() {
       return;
     }
 
+    const savedUsers =
+      JSON.parse(localStorage.getItem("bagsafeUsers")) || [];
+    const savedDemoHomeowners =
+      JSON.parse(localStorage.getItem("bagsafeDemoHomeowners")) || [];
+
+    const homeowner =
+      savedUsers.find(
+        (item) => item.id === selectedShelter.homeownerId
+      ) ||
+      savedDemoHomeowners.find(
+        (item) => item.id === selectedShelter.homeownerId
+      );
+
+    const demoHomeownerDefaults = {
+      owner1: { name: "Rajesh Sharma", email: "owner1@bagsafe.demo", password: "owner123" },
+      owner2: { name: "Priya Verma", email: "owner2@bagsafe.demo", password: "owner123" },
+      owner3: { name: "Amit Gupta", email: "owner3@bagsafe.demo", password: "owner123" },
+      owner4: { name: "Neha Singh", email: "owner4@bagsafe.demo", password: "owner123" },
+      owner5: { name: "Vikas Kumar", email: "owner5@bagsafe.demo", password: "owner123" },
+      owner6: { name: "Sunita Sharma", email: "owner6@bagsafe.demo", password: "owner123" },
+      owner7: { name: "Manoj Yadav", email: "owner7@bagsafe.demo", password: "owner123" },
+      owner8: { name: "Anjali Mehta", email: "owner8@bagsafe.demo", password: "owner123" },
+    };
+
+    const defaultHomeowner =
+      demoHomeownerDefaults[selectedShelter.homeownerId];
+
+    const homeownerEmail =
+      homeowner?.email ||
+      selectedShelter.homeownerEmail ||
+      defaultHomeowner?.email ||
+      "Not available";
+
+    const homeownerPassword =
+      homeowner?.password ||
+      selectedShelter.homeownerPassword ||
+      defaultHomeowner?.password ||
+      "Not available";
+
     setRequestDetails(newRequest);
     setRequestHomeowner({
-      name: selectedShelter.homeownerName || "Demo Homeowner",
-      email: selectedShelter.homeownerEmail || "Not available",
-      password: selectedShelter.homeownerPassword || "Not available",
+      name:
+        homeowner?.name ||
+        selectedShelter.homeownerName ||
+        defaultHomeowner?.name ||
+        "Demo Homeowner",
+      email: homeownerEmail,
+      password: homeownerPassword,
     });
     setRequestSent(true);
-
+    setShowDemoCredentials(
+      homeownerEmail !== "Not available" &&
+        homeownerPassword !== "Not available"
+    );
   };
 
-  const handleDocumentUpload = (e) => {
+  // .............................. validate and save the exam document ..............................
+
+  const handleDocumentUpload = (e, studentNumber) => {
     const file = e.target.files[0];
 
     setDocumentMessage("");
@@ -246,6 +371,7 @@ function StudentDashboard() {
 
     if (file.size > 5 * 1024 * 1024) {
       setDocumentMessage("File size must be less than 5 MB.");
+      e.target.value = "";
       return;
     }
 
@@ -257,48 +383,53 @@ function StudentDashboard() {
 
     if (!allowedTypes.includes(file.type)) {
       setDocumentMessage("Please upload a JPG, PNG, or PDF file.");
+      e.target.value = "";
       return;
     }
 
     const documentData = {
+      studentNumber,
       fileName: file.name,
       fileType: file.type,
       uploadedAt: new Date().toISOString(),
     };
 
-    const savedDocument = saveVerificationDocument(documentData);
+    const savedDocuments = saveVerificationDocuments([
+      ...verificationDocuments,
+      documentData,
+    ]);
 
-    setVerificationDocument(savedDocument);
-
+    setVerificationDocuments(savedDocuments);
     setDocumentMessage(
-      "Your exam document has been submitted successfully."
+      `${savedDocuments.length} document${savedDocuments.length > 1 ? "s" : ""} submitted successfully.`
     );
 
     e.target.value = "";
   };
 
-  const handleDeleteDocument = () => {
-    const shouldDelete = window.confirm(
-      "Are you sure you want to remove your verification document?"
+  const handleDeleteDocument = (documentIndex) => {
+    const updatedDocuments = verificationDocuments.filter(
+      (_, index) => index !== documentIndex
     );
 
-    if (!shouldDelete) {
-      return;
-    }
-
-    deleteVerificationDocument();
-
-    setVerificationDocument(null);
-
-    setDocumentMessage(
-      "Your verification document has been removed."
-    );
+    const savedDocuments = saveVerificationDocuments(updatedDocuments);
+    setVerificationDocuments(savedDocuments);
+    setDocumentMessage("Verification document removed.");
   };
+
+  const clearAllDocuments = () => {
+    deleteVerificationDocuments();
+    setVerificationDocuments([]);
+    setShowDocumentConfirm(false);
+    setDocumentMessage("All verification documents have been removed.");
+  };
+
+  // ................................. student dashboard layout and content .................................
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="border-b border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <h1 className="text-2xl font-bold text-blue-600">
               BagSafe
@@ -309,7 +440,18 @@ function StudentDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                navigate("/login?role=student", { replace: true });
+              }}
+              className="bagsafe-home-button rounded-xl px-3 py-2 text-sm font-bold sm:px-4"
+            >
+              🏠 Home
+            </button>
+
             <button
               type="button"
               onClick={() => setShowProfile(true)}
@@ -332,8 +474,11 @@ function StudentDashboard() {
 
             <button
               type="button"
-              onClick={logout}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700"
+              onClick={() => {
+                logout();
+                navigate("/login?role=student", { replace: true });
+              }}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Logout
             </button>
@@ -341,13 +486,13 @@ function StudentDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         <section className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
             Welcome back
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
             Find a safe place near your exam
           </h2>
 
@@ -357,11 +502,15 @@ function StudentDashboard() {
           </p>
         </section>
 
-        <section className="mb-8">
+        {/* .............................. show the student's wallet .............................. */}
+
+        <section className="bagsafe-section bagsafe-blue-section mb-8 rounded-3xl p-3 sm:p-4">
           <Wallet role="student" />
         </section>
 
-        <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+        {/* ................................. exam verification section ................................. */}
+
+        <section className="bagsafe-section bagsafe-green-section mb-8 rounded-3xl p-4 sm:p-6">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -374,9 +523,9 @@ function StudentDashboard() {
               </p>
             </div>
 
-            {verificationDocument ? (
+            {verificationDocuments.length > 0 ? (
               <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                Document Submitted
+                {verificationDocuments.length} Document{verificationDocuments.length > 1 ? "s" : ""} Submitted
               </span>
             ) : (
               <span className="w-fit rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300">
@@ -391,61 +540,49 @@ function StudentDashboard() {
             </div>
           )}
 
-          {!verificationDocument ? (
-            <div className="mt-6">
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition hover:border-blue-400 hover:bg-blue-50 dark:bg-slate-950 dark:border-slate-600 dark:hover:bg-blue-950/50">
-                <div className="text-3xl">📄</div>
+          <div className="mt-6 max-h-80 overflow-y-auto pr-1">
+            <div className="space-y-4">
+              {Array.from({ length: Number(students) }, (_, studentIndex) => {
+                const studentNumber = studentIndex + 1;
+                const studentDocuments = verificationDocuments.filter(
+                  (document) => document.studentNumber === studentNumber || (!document.studentNumber && studentNumber === 1)
+                );
 
-                <p className="mt-3 font-semibold text-slate-800 dark:text-slate-200">
-                  Upload exam document
-                </p>
+                return (
+                  <div
+                    key={studentNumber}
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900 dark:bg-emerald-950/20"
+                  >
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-bold text-slate-900 dark:text-slate-100">Student {studentNumber}</p>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Select admit card and identity documents for this student.</p>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{studentDocuments.length} selected</span>
+                    </div>
 
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  PDF, JPG, or PNG — maximum 5 MB
-                </p>
+                    <div className="mt-4 space-y-2">
+                      {studentDocuments.map((document) => {
+                        const documentIndex = verificationDocuments.indexOf(document);
 
-                <span className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white">
-                  Choose File
-                </span>
+                        return (
+                          <div key={document.id || `${document.fileName}-${documentIndex}`} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-white px-3 py-3 dark:border-emerald-900 dark:bg-slate-900">
+                            <p className="min-w-0 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">✓ {document.fileName}</p>
+                            <button type="button" onClick={() => handleDeleteDocument(documentIndex)} className="shrink-0 text-sm font-bold text-red-600 hover:text-red-700 dark:text-red-400">Remove</button>
+                          </div>
+                        );
+                      })}
 
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleDocumentUpload}
-                  className="hidden"
-                />
-              </label>
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-white px-4 py-3 text-center text-sm font-bold text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
+                        + Select another admit card / identity document
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleDocumentUpload(e, studentNumber)} className="hidden" />
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            <div className="mt-6 flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center dark:bg-slate-950 dark:border-slate-700">
-              <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-xl dark:bg-blue-950/60">
-                  📄
-                </div>
-
-                <div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
-                    {verificationDocument.fileName}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Submitted{" "}
-                    {new Date(
-                      verificationDocument.uploadedAt
-                    ).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleDeleteDocument}
-                className="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400"
-              >
-                Remove
-              </button>
-            </div>
-          )}
+          </div>
 
           <p className="mt-4 text-xs leading-5 text-slate-400 dark:text-slate-500">
             Demo note: this project stores only the document information in
@@ -453,7 +590,9 @@ function StudentDashboard() {
           </p>
         </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+        {/* ......................... shelter search form and results trigger ......................... */}
+
+        <section className="bagsafe-section bagsafe-blue-section rounded-3xl p-4 sm:p-6">
           <div className="mb-6">
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Search for a shelter
@@ -466,7 +605,7 @@ function StudentDashboard() {
 
           <form
             onSubmit={handleSearch}
-            className="grid grid-cols-1 gap-5 md:grid-cols-4"
+            className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
           >
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -537,8 +676,10 @@ function StudentDashboard() {
           )}
         </section>
 
+        {/* ...................................... selected shelter details ...................................... */}
+
         {selectedShelter && (
-          <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+          <section className="bagsafe-section bagsafe-purple-section mt-8 rounded-3xl p-4 sm:p-6">
             <button
               type="button"
               onClick={handleBackToResults}
@@ -547,11 +688,11 @@ function StudentDashboard() {
               ← Back to shelters
             </button>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row">
                   <div>
-                    <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
                       {selectedShelter.name}
                     </h3>
 
@@ -567,15 +708,16 @@ function StudentDashboard() {
                   </div>
 
                   <span className="h-fit rounded-full bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                    {getShelterAvailability(selectedShelter.id, selectedShelter.capacity).remainingStudents} spots left
+                    {getShelterAvailability(
+                      selectedShelter.id,
+                      selectedShelter.capacity
+                    ).remainingStudents} spots left
                   </span>
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Distance
-                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Distance</p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       {selectedShelter.distance}
@@ -583,22 +725,21 @@ function StudentDashboard() {
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Capacity
-                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Capacity</p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       {selectedShelter.capacity} students
                     </p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {getShelterAvailability(selectedShelter.id, selectedShelter.capacity).remainingStudents} spots remaining
+                      {getShelterAvailability(
+                        selectedShelter.id,
+                        selectedShelter.capacity
+                      ).remainingStudents} spots remaining
                     </p>
                   </div>
 
                   <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Price
-                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Price</p>
 
                     <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                       ₹{selectedShelter.price} / student
@@ -636,7 +777,7 @@ function StudentDashboard() {
                 </div>
               </div>
 
-              <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:bg-slate-950 dark:border-slate-700">
+              <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:bg-slate-950 dark:border-slate-700 sm:p-6">
                 {!requestSent ? (
                   <>
                     <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -685,19 +826,19 @@ function StudentDashboard() {
                       />
                     </div>
 
-                    {verificationDocument && (
+                    {verificationDocuments.length > 0 && (
                       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 dark:bg-green-950/40">
                         <p className="text-xs font-semibold text-green-700 dark:text-green-300">
                           ✓ Exam document attached
                         </p>
 
                         <p className="mt-1 truncate text-xs text-green-600">
-                          {verificationDocument.fileName}
+                          {verificationDocuments.map((document) => document.fileName).join(", ")}
                         </p>
                       </div>
                     )}
 
-                    {!verificationDocument && (
+                    {!verificationDocuments.length && (
                       <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:bg-yellow-950/40">
                         <p className="text-xs leading-5 text-yellow-700 dark:text-yellow-300">
                           You have not uploaded an exam document yet. You can
@@ -765,36 +906,6 @@ function StudentDashboard() {
                       </p>
                     </div>
 
-                    {requestHomeowner?.email &&
-                      requestHomeowner?.password &&
-                      requestHomeowner.email !== "Not available" && (
-                        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:bg-blue-950/40">
-                          <p className="text-sm font-bold text-blue-900">
-                            Demo Homeowner Login
-                          </p>
-
-                          <p className="mt-2 text-xs leading-5 text-blue-700 dark:text-blue-300">
-                            Use these demo credentials to open the homeowner
-                            dashboard and view the request.
-                          </p>
-
-                          <div className="mt-4 space-y-2 rounded-lg bg-white p-3 text-sm dark:bg-slate-900">
-                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                              <span className="text-slate-500 dark:text-slate-400">Email</span>
-                              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                {requestHomeowner.email}
-                              </span>
-                            </div>
-
-                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                              <span className="text-slate-500 dark:text-slate-400">Password</span>
-                              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                {requestHomeowner.password}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                   </div>
                 )}
               </div>
@@ -802,8 +913,10 @@ function StudentDashboard() {
           </section>
         )}
 
+        {/* ................................. show matching shelter cards ................................. */}
+
         {!selectedShelter && shelters.length > 0 && (
-          <section className="mt-8">
+          <section className="bagsafe-section bagsafe-amber-section mt-8 rounded-3xl p-4 sm:p-6">
             <div className="mb-5">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 Available Shelters
@@ -814,11 +927,11 @@ function StudentDashboard() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {shelters.map((shelter) => (
                 <div
                   key={shelter.id}
-                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
+                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 sm:p-6"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -838,7 +951,10 @@ function StudentDashboard() {
                     </div>
 
                     <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-300">
-                      {getShelterAvailability(shelter.id, shelter.capacity).remainingStudents} spots left
+                      {getShelterAvailability(
+                        shelter.id,
+                        shelter.capacity
+                      ).remainingStudents} spots left
                     </span>
                   </div>
 
@@ -884,7 +1000,9 @@ function StudentDashboard() {
           </section>
         )}
 
-        <section className="mt-12">
+        {/* ................................. track previously sent requests ................................. */}
+
+        <section className="bagsafe-section bagsafe-purple-section mt-12 rounded-3xl p-4 sm:p-6">
           <div className="mb-5">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               My Requests
@@ -896,7 +1014,7 @@ function StudentDashboard() {
           </div>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:bg-slate-900 dark:border-slate-600">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center sm:p-10 dark:bg-slate-900 dark:border-slate-600">
               <div className="text-4xl">📋</div>
 
               <h4 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -908,11 +1026,11 @@ function StudentDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="max-h-[620px] space-y-5 overflow-y-auto pr-1">
               {requests.map((request) => (
                 <div
                   key={request.requestId}
-                  className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
+                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 sm:p-6"
                 >
                   <div className="flex flex-col justify-between gap-4 sm:flex-row">
                     <div>
@@ -1006,7 +1124,15 @@ function StudentDashboard() {
                     </div>
                   )}
 
-                  <div className="mt-5 flex justify-end">
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <button
+                        type="button"
+                        onClick={() => handleDeleteRequest(request)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
+                      >
+                        Delete Request
+                      </button>
+
                     <button
                       type="button"
                       onClick={() => setChatRequest(request)}
@@ -1022,6 +1148,8 @@ function StudentDashboard() {
         </section>
       </main>
 
+      {/* ................................ profile and chat overlays ................................ */}
+
       {showProfile && (
         <StudentProfile
           onClose={() => setShowProfile(false)}
@@ -1033,6 +1161,97 @@ function StudentDashboard() {
           request={chatRequest}
           onClose={() => setChatRequest(null)}
         />
+      )}
+
+      {showDeleteConfirm && deleteTargetRequest && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/75 px-4 py-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-request-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl dark:border-red-900 dark:bg-slate-900 sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-xl dark:bg-red-950/60">
+                  🗑️
+                </div>
+
+                <div>
+                  <h2 id="delete-request-title" className="text-xl font-bold text-slate-900 dark:text-slate-100">Delete Request?</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">This action cannot be undone.</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteTargetRequest(null);
+                }}
+                aria-label="Close delete confirmation"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xl font-bold leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="mt-5 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Are you sure you want to delete this {deleteTargetRequest.status} request? Pending booking amounts will be refunded to your wallet. Accepted and rejected requests will simply be removed.
+            </p>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteTargetRequest(null);
+                }}
+                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDeleteRequest}
+                className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Delete Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDemoCredentials && requestHomeowner?.email && requestHomeowner?.password && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="demo-homeowner-title">
+          <div className="w-full max-w-lg rounded-3xl border border-blue-200 bg-white p-6 shadow-2xl dark:border-blue-800 dark:bg-slate-900 sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-600">Request submitted</p>
+                <h2 id="demo-homeowner-title" className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Demo Homeowner Credentials</h2>
+              </div>
+              <button type="button" onClick={() => setShowDemoCredentials(false)} aria-label="Close demo credentials" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-3xl font-bold leading-none text-red-600 transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400">×</button>
+            </div>
+
+            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">Your request has been sent. Keep these demo homeowner credentials to open the homeowner dashboard and review the request.</p>
+
+            <div className="mt-6 space-y-3 rounded-2xl bg-blue-50 p-5 dark:bg-blue-950/30">
+              <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email</p>
+                <p className="mt-1 break-all text-lg font-black text-slate-900 dark:text-slate-100">{requestHomeowner.email}</p>
+              </div>
+              <div className="rounded-xl bg-white p-4 dark:bg-slate-900">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Password</p>
+                <p className="mt-1 text-lg font-black text-slate-900 dark:text-slate-100">{requestHomeowner.password}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">Close this box with the red × button when you have finished reading the credentials. The page remains blocked until you close it.
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

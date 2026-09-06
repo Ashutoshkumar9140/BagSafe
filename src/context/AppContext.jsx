@@ -359,6 +359,79 @@ function AppProvider({ children }) {
     return newRequest;
   };
 
+  const deleteRequest = (requestId) => {
+    const requests = readStorage("bagsafeRequests", []);
+    const currentRequest = requests.find(
+      (request) => request.requestId === requestId
+    );
+
+    if (!currentRequest) {
+      return { success: false, message: "Request not found." };
+    }
+
+    if (currentRequest.status === "pending") {
+      const totalCost = Number(
+        currentRequest.paymentAmount ?? currentRequest.totalCost ?? 0
+      );
+      const studentWallet = getWallet(currentRequest.studentId, "student");
+      const homeownerWallet = getWallet(
+        currentRequest.homeownerId,
+        "homeowner"
+      );
+      const now = Date.now();
+
+      if (totalCost > 0) {
+        saveWallet(currentRequest.studentId, {
+          ...studentWallet,
+          balance: studentWallet.balance + totalCost,
+          reservedBalance: Math.max(
+            0,
+            studentWallet.reservedBalance - totalCost
+          ),
+          transactions: [
+            {
+              id: now,
+              type: "refund",
+              title: "Booking Payment Refunded",
+              amount: totalCost,
+              requestId,
+              date: new Date().toLocaleString(),
+            },
+            ...studentWallet.transactions,
+          ],
+        });
+
+        saveWallet(currentRequest.homeownerId, {
+          ...homeownerWallet,
+          pendingEarnings: Math.max(
+            0,
+            homeownerWallet.pendingEarnings - totalCost
+          ),
+          transactions: [
+            {
+              id: now + 1,
+              type: "cancelled",
+              title: "Booking Payment Cancelled",
+              amount: totalCost,
+              requestId,
+              date: new Date().toLocaleString(),
+            },
+            ...homeownerWallet.transactions,
+          ],
+        });
+      }
+    }
+
+    const updatedRequests = requests.filter(
+      (request) => request.requestId !== requestId
+    );
+
+    writeStorage("bagsafeRequests", updatedRequests);
+    window.dispatchEvent(new Event("bagsafeRequestUpdated"));
+
+    return { success: true, requests: updatedRequests };
+  };
+
   const updateRequestStatus = (requestId, status) => {
     const requests = readStorage("bagsafeRequests", []);
     const currentRequest = requests.find(
@@ -561,6 +634,40 @@ function AppProvider({ children }) {
     return newDocument;
   };
 
+  const saveVerificationDocuments = (documentList) => {
+    const documents = readStorage("bagsafeVerificationDocuments", []);
+    const otherDocuments = documents.filter(
+      (document) => document.studentId !== user?.id
+    );
+
+    const studentDocuments = Array.isArray(documentList)
+      ? documentList.map((document) => ({
+          ...document,
+          studentId: user?.id,
+        }))
+      : [];
+
+    const updatedDocuments = [...otherDocuments, ...studentDocuments];
+    writeStorage("bagsafeVerificationDocuments", updatedDocuments);
+
+    return studentDocuments;
+  };
+
+  const getVerificationDocuments = () => {
+    const documents = readStorage("bagsafeVerificationDocuments", []);
+
+    return documents.filter((document) => document.studentId === user?.id);
+  };
+
+  const deleteVerificationDocuments = () => {
+    const documents = readStorage("bagsafeVerificationDocuments", []);
+
+    writeStorage(
+      "bagsafeVerificationDocuments",
+      documents.filter((document) => document.studentId !== user?.id)
+    );
+  };
+
   const getVerificationDocument = () => {
     const documents = readStorage("bagsafeVerificationDocuments", []);
 
@@ -589,11 +696,15 @@ function AppProvider({ children }) {
         deleteAccount,
         createRequest,
         updateRequestStatus,
+        deleteRequest,
         addShelter,
         deleteShelter,
         saveVerificationDocument,
         getVerificationDocument,
         deleteVerificationDocument,
+        saveVerificationDocuments,
+        getVerificationDocuments,
+        deleteVerificationDocuments,
         getWallet,
       }}
     >

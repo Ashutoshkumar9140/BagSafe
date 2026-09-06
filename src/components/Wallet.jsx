@@ -223,7 +223,7 @@ function Wallet({ role }) {
   };
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6 dark:bg-slate-900 dark:ring-slate-700">
+    <div className="bagsafe-section bagsafe-blue-section rounded-3xl p-5 shadow-sm sm:p-6">
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
           {role === "student"
@@ -231,34 +231,34 @@ function Wallet({ role }) {
             : "Earnings & Wallet"}
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Demo wallet for BagSafe transactions.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl bg-blue-50 p-5 dark:bg-blue-950/40">
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/30">
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
             Available Balance
           </p>
 
-          <p className="mt-2 text-2xl font-bold text-blue-900">
+          <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">
             ₹{wallet.balance.toLocaleString()}
           </p>
         </div>
 
         {role === "student" && (
-          <div className="rounded-2xl bg-yellow-50 p-5 dark:bg-yellow-950/40">
-            <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/30">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
               Reserved for Bookings
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-yellow-900">
+            <p className="mt-2 text-2xl font-bold text-yellow-900 dark:text-yellow-100">
               ₹{wallet.reservedBalance.toLocaleString()}
             </p>
 
             {wallet.reservedBalance > 0 && (
-              <p className="mt-2 text-xs leading-5 text-yellow-700 dark:text-yellow-300">
+              <p className="mt-2 text-xs leading-5 text-amber-800 dark:text-amber-200">
                 This amount is temporarily reserved for
                 pending booking requests.
               </p>
@@ -268,39 +268,39 @@ function Wallet({ role }) {
 
         {role === "homeowner" && (
           <>
-            <div className="rounded-2xl bg-green-50 p-5 dark:bg-green-950/40">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">
+            <div className="rounded-2xl border border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950/30">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
                 Total Earnings
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-green-900">
+              <p className="mt-2 text-2xl font-bold text-green-900 dark:text-green-100">
                 ₹{wallet.totalEarnings.toLocaleString()}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-yellow-50 p-5 dark:bg-yellow-950/40">
-              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/30">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
                 Pending Earnings
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-yellow-900">
+              <p className="mt-2 text-2xl font-bold text-yellow-900 dark:text-yellow-100">
                 ₹{wallet.pendingEarnings.toLocaleString()}
               </p>
 
               {wallet.pendingEarnings > 0 && (
-                <p className="mt-2 text-xs leading-5 text-yellow-700 dark:text-yellow-300">
+                <p className="mt-2 text-xs leading-5 text-amber-800 dark:text-amber-200">
                   Money from booking requests waiting for
                   your decision.
                 </p>
               )}
             </div>
 
-            <div className="rounded-2xl bg-purple-50 p-5">
-              <p className="text-sm font-medium text-purple-700">
+            <div className="rounded-2xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-900 dark:bg-purple-950/30">
+              <p className="text-sm font-medium text-purple-800 dark:text-purple-200">
                 Total Withdrawn
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-purple-900">
+              <p className="mt-2 text-2xl font-bold text-purple-900 dark:text-purple-100">
                 ₹{wallet.totalWithdrawn.toLocaleString()}
               </p>
             </div>
@@ -341,14 +341,14 @@ function Wallet({ role }) {
             setMessage("");
             setShowWithdraw(true);
           }}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           Withdraw
         </button>
       </div>
 
       {message && (
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        <div className="mt-5 rounded-xl bg-white/80 px-4 py-3 text-sm font-medium text-slate-800 dark:bg-slate-900/70 dark:text-slate-200">
           {message}
         </div>
       )}
@@ -359,13 +359,13 @@ function Wallet({ role }) {
         </h3>
 
         {wallet.transactions.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center dark:border-slate-600">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               No transactions yet.
             </p>
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 max-h-64 w-full max-w-3xl space-y-3 overflow-y-auto pr-1">
             {wallet.transactions.map((transaction) => {
               const style = getTransactionStyle(
                 transaction.type
@@ -374,7 +374,7 @@ function Wallet({ role }) {
               return (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/60"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -384,16 +384,16 @@ function Wallet({ role }) {
                     </div>
 
                     <div>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
                         {transaction.title}
                       </p>
 
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-600 dark:text-slate-300">
                         {transaction.date}
                       </p>
 
                       {transaction.requestId && (
-                        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                           Request: {transaction.requestId}
                         </p>
                       )}
@@ -418,8 +418,8 @@ function Wallet({ role }) {
       {(showAddMoney ||
         showSendMoney ||
         showWithdraw) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-xl dark:bg-slate-900 dark:text-slate-100">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 {showAddMoney && "Add Money"}
@@ -430,19 +430,20 @@ function Wallet({ role }) {
               <button
                 type="button"
                 onClick={closeModal}
-                className="text-2xl text-slate-400 hover:text-slate-700 dark:text-slate-500"
+                aria-label="Close wallet dialog"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-3xl font-bold leading-none text-red-600 transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400"
               >
                 ×
               </button>
             </div>
 
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm text-slate-500">
               This is a demo transaction. No real money
               will be transferred.
             </p>
 
             <div className="mt-5">
-              <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">
                 Amount
               </label>
 
@@ -454,12 +455,12 @@ function Wallet({ role }) {
                   setAmount(event.target.value)
                 }
                 placeholder="Enter amount"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50"
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/50"
               />
             </div>
 
             {message && (
-              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
                 {message}
               </p>
             )}
@@ -468,7 +469,7 @@ function Wallet({ role }) {
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
