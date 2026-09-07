@@ -34,6 +34,45 @@ function HomeownerProfile({ onClose }) {
     setPermanentAddress(user?.permanentAddress || "");
   }, [user]);
 
+  // ........................ save the edited homeowner profile information ........................
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    const result = updateProfile({
+      name,
+      age: String(age),
+      sex,
+      nationality,
+      mobile,
+      email,
+      permanentAddress,
+    });
+
+    if (result !== "success") {
+      setMessage(result);
+      return;
+    }
+
+    setEditing(false);
+    setMessage("Profile updated successfully.");
+  };
+
+  // ........................ cancel profile editing and restore saved information ........................
+
+  const handleCancelEdit = () => {
+    setName(user?.name || "");
+    setAge(user?.age || "");
+    setSex(user?.sex || "");
+    setNationality(user?.nationality || "");
+    setMobile(user?.mobile || "");
+    setEmail(user?.email || "");
+    setPermanentAddress(user?.permanentAddress || "");
+    setMessage("");
+    setEditing(false);
+  };
+
   // ........................ permanently remove the homeowner account ........................
 
   const handleDeleteAccount = (e) => {
@@ -58,6 +97,8 @@ function HomeownerProfile({ onClose }) {
 
     navigate("/signup", { replace: true });
   };
+
+  // ........................ permanently remove the homeowner account ........................
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-4 sm:px-4 sm:py-6">

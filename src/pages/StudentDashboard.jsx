@@ -27,6 +27,7 @@ function StudentDashboard() {
 
   const [message, setMessage] = useState("");
   const [requestMessage, setRequestMessage] = useState("");
+  const [requestWarning, setRequestWarning] = useState("");
 
   const [requestSent, setRequestSent] = useState(false);
   const [requestDetails, setRequestDetails] = useState(null);
@@ -56,6 +57,19 @@ function StudentDashboard() {
     "Gurgaon",
     "Ghaziabad",
   ];
+
+  useEffect(() => {
+    if (!requestWarning) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [requestWarning]);
 
   // ................................. keep requests and verification data in sync .................................
 
@@ -146,6 +160,7 @@ function StudentDashboard() {
     }
 
     setMessage("Request deleted successfully.");
+    window.setTimeout(() => setMessage(""), 5000);
     setRequestSent(false);
     setRequestDetails(null);
     setRequestHomeowner(null);
@@ -158,6 +173,7 @@ function StudentDashboard() {
 
     setShelters([]);
     setSelectedShelter(null);
+    setRequestWarning("");
     setMessage("");
     setRequestSent(false);
     setRequestDetails(null);
@@ -218,6 +234,21 @@ function StudentDashboard() {
   };
 
   const handleViewShelter = (shelter) => {
+    const duplicateRequest = requests.some(
+      (request) =>
+        request.studentId === user?.id &&
+        String(request.shelterId) === String(shelter.id) &&
+        ["pending", "accepted"].includes(request.status),
+    );
+
+    if (duplicateRequest) {
+      setSelectedShelter(null);
+      setRequestWarning("You already created a request for this house. Delete that request first to create a new request.");
+      setMessage("");
+      return;
+    }
+
+    setRequestWarning("");
     setSelectedShelter(shelter);
     setMessage("");
     setRequestSent(false);
@@ -237,6 +268,23 @@ function StudentDashboard() {
 
   const handleSendRequest = () => {
     if (!selectedShelter) {
+      return;
+    }
+
+    const duplicateRequest = requests.some(
+      (request) =>
+        request.studentId === user?.id &&
+        String(request.shelterId) === String(selectedShelter.id) &&
+        ["pending", "accepted"].includes(request.status),
+    );
+
+    if (duplicateRequest) {
+      setSelectedShelter(null);
+      setRequestSent(false);
+      setRequestDetails(null);
+      setRequestHomeowner(null);
+      setRequestWarning("You already created a request for this house. Delete that request first to create a new request.");
+      setMessage("");
       return;
     }
 
@@ -274,7 +322,16 @@ function StudentDashboard() {
     });
 
     if (newRequest?.success === false) {
-      setMessage(newRequest.message);
+      if (newRequest.message?.toLowerCase().includes("already have an active request")) {
+        setSelectedShelter(null);
+        setRequestWarning("You already created a request for this house. Delete that request first to create a new request.");
+        setMessage("");
+      } else if (newRequest.message?.toLowerCase().includes("insufficient wallet balance")) {
+        setRequestWarning(newRequest.message);
+        setMessage("");
+      } else {
+        setMessage(newRequest.message);
+      }
       return;
     }
 
@@ -659,85 +716,87 @@ function StudentDashboard() {
             </p>
           </div>
 
-          <form
-            onSubmit={handleSearch}
-            className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
-          >
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                City
-              </label>
+          <>
+            <form
+                onSubmit={handleSearch}
+                className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
+              >
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    City
+                  </label>
 
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
                  focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
                   dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
-              >
-                <option value="">Select city</option>
+                  >
+                    <option value="">Select city</option>
 
-                {supportedCities.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
+                    {supportedCities.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Exam Center / Area
-              </label>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Exam Center / Area
+                  </label>
 
-              <input
-                type="text"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="e.g. Noida Sector 62"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
+                  <input
+                    type="text"
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    placeholder="e.g. Noida Sector 62"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition
                  focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
-              />
-            </div>
+                  />
+                </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Students
-              </label>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Students
+                  </label>
 
-              <select
-                value={students}
-                onChange={(e) => setStudents(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
+                  <select
+                    value={students}
+                    onChange={(e) => setStudents(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition
                  focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-slate-900
                   dark:border-slate-600 dark:focus:ring-blue-900/50 dark:focus:border-blue-400"
-              >
-                <option value="1">1 Student</option>
-                <option value="2">2 Students</option>
-                <option value="3">3 Students</option>
-                <option value="4">4 Students</option>
-                <option value="5">5 Students</option>
-              </select>
-            </div>
+                  >
+                    <option value="1">1 Student</option>
+                    <option value="2">2 Students</option>
+                    <option value="3">3 Students</option>
+                    <option value="4">4 Students</option>
+                    <option value="5">5 Students</option>
+                  </select>
+                </div>
 
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
-              >
-                Search Shelters
-              </button>
-            </div>
-          </form>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 dark:hover:bg-blue-500"
+                  >
+                    Search Shelters
+                  </button>
+                </div>
+              </form>
 
-          {message && (
-            <div
-              className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm
+              {message && (
+                <div
+                  className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm
              text-red-700 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900"
-            >
-              {message}
-            </div>
-          )}
+                >
+                  {message}
+                </div>
+              )}
+          </>
         </section>
 
         {/* ...................................... selected shelter details ...................................... */}
@@ -1120,7 +1179,7 @@ function StudentDashboard() {
               </p>
             </div>
           ) : (
-            <div className="max-h-[620px] space-y-5 overflow-y-auto pr-1">
+            <div className="bagsafe-hidden-scrollbar max-h-[620px] space-y-5 overflow-y-auto pr-1">
               {requests.map((request) => (
                 <div
                   key={request.requestId}
@@ -1245,6 +1304,48 @@ function StudentDashboard() {
           )}
         </section>
       </main>
+
+      {requestWarning && (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="request-warning-title"
+        >
+          <div
+            className="w-full max-w-md rounded-3xl border border-yellow-200 bg-white p-6 shadow-2xl
+            dark:border-yellow-900 dark:bg-slate-900 sm:p-7"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xl dark:bg-yellow-950/60">
+                ⚠️
+              </div>
+
+              <div className="min-w-0 flex-1 pr-1">
+                <h3
+                  id="request-warning-title"
+                  className="text-lg font-bold text-slate-900 dark:text-slate-100"
+                >
+                  Request Warning
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {requestWarning}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setRequestWarning("")}
+                aria-label="Close request warning"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-2xl font-bold leading-none text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ................................ profile and chat overlays ................................ */}
 

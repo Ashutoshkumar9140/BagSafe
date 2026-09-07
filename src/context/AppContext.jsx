@@ -305,7 +305,8 @@ function AppProvider({ children }) {
 
   const getDemoHomeowners = () => {
     const deletedIds = readStorage("bagsafeDeletedDemoHomeowners", []);
-    return demoHomeowners.filter((item) => !deletedIds.includes(item.id));
+    const savedDemoHomeowners = readStorage("bagsafeDemoHomeowners", demoHomeowners);
+    return savedDemoHomeowners.filter((item) => !deletedIds.includes(item.id));
   };
 
   // ........................ create a new student or homeowner account ........................
@@ -915,6 +916,31 @@ function AppProvider({ children }) {
     return updatedShelters;
   };
 
+  // ........................ update an existing homeowner shelter without creating a duplicate shelter ........................
+
+  const updateShelter = (shelterId, shelterData) => {
+    const shelters = readStorage("bagsafeOwnerShelters", []);
+    const updatedShelters = shelters.map((shelter) =>
+      String(shelter.id) === String(shelterId)
+        ? {
+            ...shelter,
+            ...shelterData,
+            name: shelterData.name.trim(),
+            address: shelterData.address.trim(),
+            city: shelterData.city.trim(),
+            area: shelterData.area.trim(),
+            capacity: Number(shelterData.capacity),
+            price: Number(shelterData.price),
+          }
+        : shelter,
+    );
+
+    writeStorage("bagsafeOwnerShelters", updatedShelters);
+    window.dispatchEvent(new Event("bagsafeShelterUpdated"));
+
+    return updatedShelters;
+  };
+
   const saveVerificationDocument = (documentData) => {
     const documents = readStorage("bagsafeVerificationDocuments", []);
     const existingDocument = documents.find(
@@ -1014,6 +1040,7 @@ function AppProvider({ children }) {
         updateRequestStatus,
         deleteRequest,
         addShelter,
+        updateShelter,
         deleteShelter,
         saveVerificationDocument,
         getVerificationDocument,

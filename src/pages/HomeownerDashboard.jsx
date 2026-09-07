@@ -5,8 +5,14 @@ import Wallet from "../components/Wallet";
 import Chat from "../components/Chat";
 
 function HomeownerDashboard() {
-  const { user, logout, updateRequestStatus, addShelter, deleteShelter } =
-    useApp();
+  const {
+    user,
+    logout,
+    updateRequestStatus,
+    addShelter,
+    updateShelter,
+    deleteShelter,
+  } = useApp();
 
   const [requests, setRequests] = useState([]);
   const [shelters, setShelters] = useState([]);
@@ -14,6 +20,7 @@ function HomeownerDashboard() {
   const [showProfile, setShowProfile] = useState(false);
   const [chatRequest, setChatRequest] = useState(null);
   const [deleteShelterId, setDeleteShelterId] = useState(null);
+  const [editingShelterId, setEditingShelterId] = useState(null);
 
   const [shelterName, setShelterName] = useState("");
   const [address, setAddress] = useState("");
@@ -49,14 +56,20 @@ function HomeownerDashboard() {
       if (event.key === "bagsafeRequests") {
         loadRequests();
       }
+
+      if (event.key === "bagsafeOwnerShelters") {
+        loadShelters();
+      }
     };
 
     window.addEventListener("bagsafeRequestUpdated", handleRequestUpdate);
+    window.addEventListener("bagsafeShelterUpdated", loadShelters);
 
     window.addEventListener("storage", handleStorageUpdate);
 
     return () => {
       window.removeEventListener("bagsafeRequestUpdated", handleRequestUpdate);
+      window.removeEventListener("bagsafeShelterUpdated", loadShelters);
 
       window.removeEventListener("storage", handleStorageUpdate);
     };
@@ -112,7 +125,7 @@ function HomeownerDashboard() {
 
   // ........................ validate and save a new shelter ........................
 
-  const handleAddShelter = (e) => {
+  const handleSaveShelter = (e) => {
     e.preventDefault();
 
     setShelterMessage("");
@@ -140,7 +153,7 @@ function HomeownerDashboard() {
       return;
     }
 
-    const newShelter = addShelter({
+    const shelterData = {
       homeownerId: user.id,
       homeownerName: user.name,
       homeownerEmail: user.email,
@@ -152,9 +165,17 @@ function HomeownerDashboard() {
       price: Number(price),
       availability,
       amenities,
-    });
+    };
 
-    setShelters([...shelters, newShelter]);
+    if (editingShelterId) {
+      const updatedShelters = updateShelter(editingShelterId, shelterData);
+      setShelters(
+        updatedShelters.filter((shelter) => shelter.homeownerId === user?.id),
+      );
+    } else {
+      const newShelter = addShelter(shelterData);
+      setShelters((currentShelters) => [...currentShelters, newShelter]);
+    }
 
     setShelterName("");
     setAddress("");
@@ -164,6 +185,39 @@ function HomeownerDashboard() {
     setPrice("");
     setAvailability("");
     setAmenities([]);
+    setEditingShelterId(null);
+    setShowShelterForm(false);
+  };
+
+  // ........................ open a shelter in the existing form for editing ........................
+
+  const handleEditShelter = (shelter) => {
+    setEditingShelterId(shelter.id);
+    setShelterName(shelter.name || "");
+    setAddress(shelter.address || "");
+    setCity(shelter.city || "");
+    setArea(shelter.area || "");
+    setCapacity(String(shelter.capacity || ""));
+    setPrice(String(shelter.price || ""));
+    setAvailability(shelter.availability || "");
+    setAmenities(Array.isArray(shelter.amenities) ? shelter.amenities : []);
+    setShelterMessage("");
+    setShowShelterForm(true);
+  };
+
+  // ........................ reset the shelter form without creating or changing a shelter ........................
+
+  const handleCancelShelterForm = () => {
+    setShelterName("");
+    setAddress("");
+    setCity("");
+    setArea("");
+    setCapacity("");
+    setPrice("");
+    setAvailability("");
+    setAmenities([]);
+    setShelterMessage("");
+    setEditingShelterId(null);
     setShowShelterForm(false);
   };
 
@@ -310,8 +364,13 @@ function HomeownerDashboard() {
             <button
               type="button"
               onClick={() => {
-                setShowShelterForm(!showShelterForm);
+                if (showShelterForm) {
+                  handleCancelShelterForm();
+                  return;
+                }
+
                 setShelterMessage("");
+                setShowShelterForm(true);
               }}
               className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white
                transition hover:bg-blue-700 dark:hover:bg-blue-500"
@@ -322,11 +381,11 @@ function HomeownerDashboard() {
 
           {showShelterForm && (
             <form
-              onSubmit={handleAddShelter}
+              onSubmit={handleSaveShelter}
               className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700"
             >
               <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                Add a new shelter
+                {editingShelterId ? "Edit shelter" : "Add a new shelter"}
               </h4>
 
               {shelterMessage && (
@@ -503,8 +562,18 @@ function HomeownerDashboard() {
                 className="mt-6 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white 
                 transition hover:bg-green-700 dark:hover:bg-green-600"
               >
-                Add Shelter
+                {editingShelterId ? "Save Changes" : "Add Shelter"}
               </button>
+
+              {editingShelterId && (
+                <button
+                  type="button"
+                  onClick={handleCancelShelterForm}
+                  className="ml-3 mt-6 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancel Edit
+                </button>
+              )}
             </form>
           )}
 
@@ -545,13 +614,23 @@ function HomeownerDashboard() {
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteShelter(shelter.id)}
-                      className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleEditShelter(shelter)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteShelter(shelter.id)}
+                        className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-400">
@@ -607,7 +686,7 @@ function HomeownerDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="bagsafe-hidden-scrollbar max-h-[620px] space-y-5 overflow-y-auto pr-1">
               {requests.map((request) => (
                 <div
                   key={request.requestId}

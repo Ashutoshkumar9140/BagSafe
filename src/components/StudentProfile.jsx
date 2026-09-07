@@ -39,6 +39,45 @@ function StudentProfile({ onClose }) {
       (document) => document.studentId === user?.id,
     ) || null;
 
+  // ........................ save the edited student profile information ........................
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    const result = updateProfile({
+      name,
+      age: String(age),
+      sex,
+      nationality,
+      mobile,
+      email,
+      permanentAddress,
+    });
+
+    if (result !== "success") {
+      setMessage(result);
+      return;
+    }
+
+    setEditing(false);
+    setMessage("Profile updated successfully.");
+  };
+
+  // ........................ cancel profile editing and restore saved information ........................
+
+  const handleCancelEdit = () => {
+    setName(user?.name || "");
+    setAge(user?.age || "");
+    setSex(user?.sex || "");
+    setNationality(user?.nationality || "");
+    setMobile(user?.mobile || "");
+    setEmail(user?.email || "");
+    setPermanentAddress(user?.permanentAddress || "");
+    setMessage("");
+    setEditing(false);
+  };
+
   // ........................ permanently remove the student account ........................
 
   const handleDeleteAccount = (e) => {
@@ -63,6 +102,8 @@ function StudentProfile({ onClose }) {
 
     navigate("/signup", { replace: true });
   };
+
+  // ........................ permanently remove the student account ........................
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-4 sm:px-4 sm:py-6">
